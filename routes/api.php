@@ -14,3 +14,4 @@ Route::post('login', [UserController::class, 'login']);
 Route::post('/forget-password', [UserController::class, 'forgetPassword']);
 Route::post('/verify-reset-otp', [UserController::class, 'verifyResetOtp']);
 Route::post('/reset-password', [UserController::class, 'resetPassword']);
+//lovee
