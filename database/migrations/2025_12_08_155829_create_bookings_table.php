@@ -21,7 +21,8 @@ return new class extends Migration
     // Booking details
     $table->date('start_date');
     $table->date('end_date');
-    $table->enum('status', ['available', 'pending', 'confirmed', 'cancelled'])->default('available');
+    $table->enum('status', ['available', 'pending
+    ', 'booked', 'cancelled'])->default('available');
 
     // Optional extras
     $table->decimal('total_price', 10, 2)->nullable();
