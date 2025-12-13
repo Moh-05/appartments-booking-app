@@ -29,6 +29,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
             $table->boolean('available')->default(true);
+            
 
             // NEW field for admin moderation
             $table->enum('approval_status', ['pending', 'approved', 'rejected'])->default('pending');
