@@ -17,7 +17,7 @@ return new class extends Migration
     $table->text('description')->nullable();
     $table->decimal('price', 10, 2);
     $table->decimal('rating', 2, 1)->nullable();
-    $table->json('images')->nullable();
+    $table->json('images');
     $table->integer('space');       // apartment size in m²
     $table->integer('rooms');       // number of rooms
     $table->integer('floor');       // floor number

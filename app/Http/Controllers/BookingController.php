@@ -2,64 +2,42 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Admin;
+use App\Models\Appartement;
 use App\Models\Booking;
+use App\Notifications\NewBookingNotification;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller; // <-- make sure Controller is imported
+use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function store(Request $request, $appartementId)
     {
-        //
-    }
+        $request->validate([
+            'end_date' => 'required|date|after:today',
+        ]);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        $appartement = Appartement::findOrFail($appartementId);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        $booking = Booking::create([
+            'user_id' =>Auth::user()->id,
+            'appartement_id' => $appartement->id,
+            'end_date' => $request->end_date,
+            'status' => 'pending',
+            
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Booking $booking)
-    {
-        //
-    }
+        // Load relations for notification
+        $booking->load(['appartement.owner', 'user']);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Booking $booking)
-    {
-        //
-    }
+        foreach (Admin::all() as $admin) {
+            $admin->notify(new NewBookingNotification($booking));
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Booking $booking)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Booking $booking)
-    {
-        //
+        return response()->json([
+            'message' => 'Booking request submitted, waiting for admin approval',
+            'booking' => $booking,
+        ], 201);
     }
 }
