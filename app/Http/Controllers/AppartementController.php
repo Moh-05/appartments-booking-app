@@ -13,11 +13,19 @@ class AppartementController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() {}
+    public function index()
+{
+    // Right now we return ALL appartements
+    $appartements = Appartement::all();
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // to only show approved appartements,
+    // $appartements = Appartement::where('approval_status', 'approved')->get();
+
+    return response()->json([
+        'status' => 'success',
+        'data'   => $appartements
+    ], 200);
+}
 
    public function store(StoreAppartementRequest $request)
 {
@@ -34,6 +42,8 @@ class AppartementController extends Controller
         [
             'images'  => $paths,
             'user_id' => Auth::id(),
+            'approval_status' => 'pending'
+
         ]
     ));
 
@@ -66,14 +76,12 @@ class AppartementController extends Controller
     {
         $appartement = Appartement::findOrFail($id);
 
-        // حذف الصور من التخزين
         if ($appartement->images && is_array($appartement->images)) {
             foreach ($appartement->images as $image) {
                 Storage::disk('public')->delete($image);
             }
         }
 
-        // حذف السجل
         $appartement->delete();
 
         return response()->json([
