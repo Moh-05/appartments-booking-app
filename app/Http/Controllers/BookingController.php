@@ -12,32 +12,30 @@ use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
-    public function store(Request $request, $appartementId)
-    {
-        $request->validate([
-            'end_date' => 'required|date|after:today',
-        ]);
+   public function store(Request $request, $appartementId)
+{
+    $request->validate([
+        'end_date' => 'required|date|after:today',
+    ]);
 
-        $appartement = Appartement::findOrFail($appartementId);
+    $appartement = Appartement::findOrFail($appartementId);
 
-        $booking = Booking::create([
-            'user_id' =>Auth::user()->id,
-            'appartement_id' => $appartement->id,
-            'end_date' => $request->end_date,
-            'status' => 'pending',
-            
-        ]);
+    $booking = Booking::create([
+        'user_id'        => Auth::id(),
+        'appartement_id' => $appartement->id,
+        'end_date'       => $request->end_date,
+        'status'         => 'pending',
+    ]);
 
-        // Load relations for notification
-        $booking->load(['appartement.owner', 'user']);
+    // Load relations for notification
+    $booking->load(['appartement.owner', 'user']);
 
-        foreach (Admin::all() as $admin) {
-            $admin->notify(new NewBookingNotification($booking));
-        }
+    // 👉 Notify the owner of the appartement instead of admins
+    $appartement->owner->notify(new \App\Notifications\NewBookingNotification($booking));
 
-        return response()->json([
-            'message' => 'Booking request submitted, waiting for admin approval',
-            'booking' => $booking,
-        ], 201);
-    }
+    return response()->json([
+        'message' => 'Booking request submitted, waiting for owner approval',
+        'booking' => $booking,
+    ], 201);
+}
 }

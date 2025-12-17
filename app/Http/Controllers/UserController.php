@@ -261,4 +261,19 @@ public function verifyResetOtp(Request $request)
             'message' => 'Password reset successfully'
         ]);
     }
+
+     public function notifications()
+    {
+        $user = Auth::user();
+
+        // Get all notifications (you can also filter unread/read)
+        $notifications = $user->notifications;
+
+        return response()->json([
+            'message' => 'User notifications retrieved successfully',
+            'notifications' => $notifications
+        ]);
+    }
+
+
 }

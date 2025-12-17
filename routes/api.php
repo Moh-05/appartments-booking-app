@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\AppartementController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\OwnerController;
 
 // --------------------
 // 🔐 Auth & User Routes
@@ -18,14 +19,18 @@ Route::post('/forget-password', [UserController::class, 'forgetPassword']);
 Route::post('/verify-reset-otp', [UserController::class, 'verifyResetOtp']);
 Route::post('/reset-password', [UserController::class, 'resetPassword']);
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    // 👉 User notifications
+    Route::get('/user/notifications', [UserController::class, 'notifications']);
+});
 
 // --------------------
 // 🏠 Appartement Routes
 // --------------------
-// Resource API for appartements (index, store, update, destroy)
 Route::middleware('auth:sanctum')->apiResource('appartements', AppartementController::class);
 
 // --------------------
@@ -35,27 +40,28 @@ Route::middleware('auth:sanctum')->group(function () {
     // Create booking for an appartement
     Route::post('/appartements/{appartementId}/bookings', [BookingController::class, 'store']);
 
-    // Future: Cancel a booking
+    // Cancel a booking
     Route::post('/bookings/{bookingId}/cancel', [BookingController::class, 'cancel']);
 });
 
 // --------------------
 // 👨‍💼 Admin Routes
 // --------------------
-
-Route::post('/admin/login', [AdminController::class,'login']);
+Route::post('/admin/login', [AdminController::class, 'login']);
 
 Route::middleware('auth:admin')->group(function () {
     // Notifications
     Route::get('/admin/notifications', [AdminController::class, 'notifications']);
 
-    // Booking approvals
-    Route::post('/admin/bookings/{bookingId}/approve', [AdminController::class, 'approve_booking']);
-    Route::post('/admin/bookings/{bookingId}/decline', [AdminController::class, 'decline_booking']);
-
-    // Appartement approvals
+    // appartement approvals
     Route::post('/admin/appartements/{appartementId}/approve', [AdminController::class, 'approve_appartement']);
     Route::post('/admin/appartements/{appartementId}/reject', [AdminController::class, 'reject_appartement']);
-
 });
-// hi jehad :) ;
+
+// --------------------
+// 🏠 Owner Routes
+// --------------------
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/owner/bookings/{bookingId}/approve', [OwnerController::class, 'approveBooking']);
+    Route::post('/owner/bookings/{bookingId}/decline', [OwnerController::class, 'declineBooking']);
+});

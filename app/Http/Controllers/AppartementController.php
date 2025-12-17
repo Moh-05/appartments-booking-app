@@ -72,20 +72,21 @@ class AppartementController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
-    {
-        $appartement = Appartement::findOrFail($id);
+  public function destroy($id)
+{
+    $appartement = Appartement::findOrFail($id);
 
-        if ($appartement->images && is_array($appartement->images)) {
-            foreach ($appartement->images as $image) {
-                Storage::disk('public')->delete($image);
-            }
+    if ($appartement->images && is_array($appartement->images)) {
+        foreach ($appartement->images as $image) {
+            Storage::disk('public')->delete($image);
         }
-
-        $appartement->delete();
-
-        return response()->json([
-            'message' => 'Appartement deleted successfully.'
-        ], 200);
     }
+
+    $appartement->delete();
+
+    return response()->json([
+        'status'  => 'success',
+        'message' => 'Appartement deleted successfully.'
+    ], 200);
+}
 }
