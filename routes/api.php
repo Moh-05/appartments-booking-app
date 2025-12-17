@@ -58,3 +58,4 @@ Route::middleware('auth:admin')->group(function () {
     Route::post('/admin/appartements/{appartementId}/reject', [AdminController::class, 'reject_appartement']);
 
 });
+// hi jehad :) ;
