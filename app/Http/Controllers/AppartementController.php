@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAppartementRequest;
 use App\Models\Appartement;
+use App\Notifications\NewAppartementNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -48,7 +49,7 @@ class AppartementController extends Controller
     ));
 
     foreach (\App\Models\Admin::all() as $admin) {
-        $admin->notify(new \App\Notifications\NewAppartementNotification($appartement));
+        $admin->notify(new NewAppartementNotification($appartement));
     }
 
     return response()->json([
@@ -71,10 +72,16 @@ class AppartementController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     */
-  public function destroy($id)
+     */public function destroy($id)
 {
     $appartement = Appartement::findOrFail($id);
+
+    if ($appartement->owner->id !== Auth::id()) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'Unauthorized: You can only delete your own appartement.'
+        ], 403);
+    }
 
     if ($appartement->images && is_array($appartement->images)) {
         foreach ($appartement->images as $image) {

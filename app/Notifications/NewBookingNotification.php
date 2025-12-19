@@ -31,16 +31,18 @@ class NewBookingNotification extends Notification
     /**
      * Get the array representation of the notification.
      */
-   public function toArray($notifiable)
+  public function toArray($notifiable)
 {
     return [
         'message'           => 'New booking request submitted',
         'booking_id'        => $this->booking->id,
-        'user_id'           => $this->booking->user_id, // guest who booked
+        'user_id'           => $this->booking->user_id, 
         'appartement_id'    => $this->booking->appartement_id,
         'appartement_title' => $this->booking->appartement->title,
-        'owner_id'          => $this->booking->appartement->owner->id, // guaranteed owner
+        'owner_id'          => $this->booking->appartement->owner->id, 
+        'start_date'        => $this->booking->start_date, 
         'end_date'          => $this->booking->end_date,
+        'total_price'       => $this->booking->total_price, 
     ];
 }
 }
