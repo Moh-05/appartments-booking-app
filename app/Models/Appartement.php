@@ -23,6 +23,7 @@ class Appartement extends Model
         'address',
         'user_id',
         'available',
+        'approval_status'
     ];
 
     protected $casts = [

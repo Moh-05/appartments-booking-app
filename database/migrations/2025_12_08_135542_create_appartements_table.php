@@ -11,24 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('appartements', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->text('description')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->decimal('rating', 2, 1)->nullable();
-            $table->json('images')->nullable();
-            $table->integer('space');       // apartment size in m²
-            $table->integer('rooms');       // number of rooms
-            $table->integer('floor');       // floor number
-            $table->string('city');
-            $table->string('area');
-            $table->string('address')->nullable();
+       Schema::create('appartements', function (Blueprint $table) {
+    $table->id();
+    $table->string('title');
+    $table->text('description')->nullable();
+    $table->decimal('price', 10, 2);
+    $table->decimal('rating', 2, 1)->nullable();
+    $table->json('images')->nullable();
+    $table->integer('space');       // apartment size in m²
+    $table->integer('rooms');       // number of rooms
+    $table->integer('floor');       // floor number
+    $table->string('city');
+    $table->string('area');
+    $table->string('address')->nullable();
 
             // relations
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
             $table->boolean('available')->default(true);
+            
 
             // NEW field for admin moderation
             $table->enum('approval_status', ['pending', 'approved', 'rejected'])->default('pending');

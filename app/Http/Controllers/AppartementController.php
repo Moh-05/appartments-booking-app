@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAppartementRequest;
 use App\Models\Appartement;
+use App\Notifications\NewAppartementNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -13,36 +14,49 @@ class AppartementController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() {}
+    public function index()
+{
+    // Right now we return ALL appartements
+    $appartements = Appartement::all();
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // to only show approved appartements,
+    // $appartements = Appartement::where('approval_status', 'approved')->get();
 
-    public function store(StoreAppartementRequest $request)
-    {
-        $paths = [];
+    return response()->json([
+        'status' => 'success',
+        'data'   => $appartements
+    ], 200);
+}
 
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $paths[] = $image->store('appartements', 'public');
-            }
+   public function store(StoreAppartementRequest $request)
+{
+    $paths = [];
+
+    if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $image) {
+            $paths[] = $image->store('appartements', 'public');
         }
-        //  $user_id=Auth()
-        $store = Appartement::create(array_merge(
-            $request->validated(),
-            [
-                'images' => $paths,
-                'user_id' => Auth::user()->id
-            ]
-        ));
-
-        return response()->json([
-            'message' => 'Appartement created successfully.',
-            'data'    => $store,
-        ], 201);
     }
 
+    $appartement = Appartement::create(array_merge(
+        $request->validated(),
+        [
+            'images'  => $paths,
+            'user_id' => Auth::id(),
+            'approval_status' => 'pending'
+
+        ]
+    ));
+
+    foreach (\App\Models\Admin::all() as $admin) {
+        $admin->notify(new NewAppartementNotification($appartement));
+    }
+
+    return response()->json([
+        'message' => 'Appartement submitted successfully. Waiting for admin approval.',
+        'data'    => $appartement,
+    ], 201);
+}
     public function show(Appartement $appartement)
     {
         //
@@ -58,23 +72,28 @@ class AppartementController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        $appartement = Appartement::findOrFail($id);
+     */public function destroy($id)
+{
+    $appartement = Appartement::findOrFail($id);
 
-        // حذف الصور من التخزين
-        if ($appartement->images && is_array($appartement->images)) {
-            foreach ($appartement->images as $image) {
-                Storage::disk('public')->delete($image);
-            }
-        }
-
-        // حذف السجل
-        $appartement->delete();
-
+    if ($appartement->owner->id !== Auth::id()) {
         return response()->json([
-            'message' => 'Appartement deleted successfully.'
-        ], 200);
+            'status'  => 'error',
+            'message' => 'Unauthorized: You can only delete your own appartement.'
+        ], 403);
     }
+
+    if ($appartement->images && is_array($appartement->images)) {
+        foreach ($appartement->images as $image) {
+            Storage::disk('public')->delete($image);
+        }
+    }
+
+    $appartement->delete();
+
+    return response()->json([
+        'status'  => 'success',
+        'message' => 'Appartement deleted successfully.'
+    ], 200);
+}
 }

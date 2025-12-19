@@ -2,64 +2,54 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Appartement;
 use App\Models\Booking;
+use App\Notifications\NewBookingNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon; 
 
 class BookingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function store(Request $request, $appartementId)
     {
-        //
-    }
+        $request->validate([
+            'start_date' => 'required|date|after_or_equal:today',
+            'end_date'   => 'required|date|after:start_date',
+        ]);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        $appartement = Appartement::findOrFail($appartementId);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        // 👉 Prevent owner from booking their own appartement
+        if ($appartement->owner->id === Auth::id()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'You cannot book your own appartement.'
+            ], 403);
+        }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Booking $booking)
-    {
-        //
-    }
+        $startDate  = Carbon::parse($request->start_date);
+        $endDate    = Carbon::parse($request->end_date);
+        $days       = $startDate->diffInDays($endDate); 
+        $totalPrice = $days * $appartement->price;
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Booking $booking)
-    {
-        //
-    }
+        $booking = Booking::create([
+            'user_id'        => Auth::id(),
+            'appartement_id' => $appartement->id,
+            'start_date'     => $request->start_date,
+            'end_date'       => $request->end_date,
+            'status'         => 'pending',
+            'total_price'    => $totalPrice, 
+        ]);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Booking $booking)
-    {
-        //
-    }
+        $booking->load(['appartement.owner', 'user']);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Booking $booking)
-    {
-        //
+        // Notify the owner
+        $appartement->owner->notify(new NewBookingNotification($booking));
+
+        return response()->json([
+            'message' => 'Booking request submitted, waiting for owner approval',
+            'booking' => $booking,
+        ], 201);
     }
 }

@@ -194,6 +194,54 @@ class UserController extends Controller
             'ultramsg_response' => $respData
         ]);
     }
+<<<<<<< HEAD
+=======
+
+    // Store reset flow data linked to OTP
+    Cache::put('reset_flow_' . $otp, [
+        'phone' => $phone,
+        'otp'   => $otp,
+    ], now()->addMinutes(1));
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'OTP sent successfully',
+        'ultramsg_response' => $respData
+    ]);
+}
+
+
+public function verifyResetOtp(Request $request)
+{
+    $request->validate([
+        'otp' => 'required|digits:6',
+    ]);
+
+    $data = Cache::get('reset_flow_' . $request->otp);
+
+    if (!$data) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Invalid or expired OTP'
+        ], 400);
+    }
+
+    $resetToken = Str::random(40);
+
+    Cache::put('reset_token_' . $resetToken, [
+        'phone' => $data['phone'],
+    ], now()->addMinutes(5));
+
+    // Clear the OTP cache since it’s used
+    Cache::forget('reset_flow_' . $request->otp);
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'OTP verified successfully. Use reset token to reset password.',
+        'reset_token' => $resetToken
+    ]);
+}
+>>>>>>> 981d459ad83816aece760ec6023522c3154d9a1d
     public function resetPassword(Request $request)
     {
         $request->validate([
@@ -229,4 +277,19 @@ class UserController extends Controller
             'message' => 'Password reset successfully'
         ]);
     }
+
+     public function notifications()
+    {
+        $user = Auth::user();
+
+        // Get all notifications (you can also filter unread/read)
+        $notifications = $user->notifications;
+
+        return response()->json([
+            'message' => 'User notifications retrieved successfully',
+            'notifications' => $notifications
+        ]);
+    }
+
+
 }
