@@ -146,54 +146,54 @@ class UserController extends Controller
         );
     }
 
-   public function forgetPassword(Request $request)
-{
-    $request->validate([
-        'phone' => 'required|string|max:15',
-    ]);
+    public function forgetPassword(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string|max:15',
+        ]);
 
-    // Normalize phone input (trim spaces, ensure consistent format)
-    $phone = trim($request->phone);
+        // Normalize phone input (trim spaces, ensure consistent format)
+        $phone = trim($request->phone);
 
-    $user = User::where('phone', $phone)->first();
-    if (!$user) {
+        $user = User::where('phone', $phone)->first();
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Phone number not found',
+            ], 404);
+        }
+
+        $otp = rand(100000, 999999);
+
+        // Send OTP via UltraMsg
+        $url = "https://api.ultramsg.com/" . env('ULTRAMSG_INSTANCE_ID') . "/messages/chat";
+        $response = Http::asForm()->post($url, [
+            'token' => env('ULTRAMSG_TOKEN'),
+            'to'    => $phone,
+            'body'  => "Your password reset OTP is: $otp",
+        ]);
+
+        $respData = $response->json();
+        if (isset($respData['error'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'UltraMsg error, OTP not sent',
+                'ultramsg_response' => $respData
+            ], 400);
+        }
+
+        // Store reset flow data linked to OTP
+        Cache::put('reset_flow_' . $otp, [
+            'phone' => $phone,
+            'otp'   => $otp,
+        ], now()->addMinutes(1));
+
         return response()->json([
-            'status' => 'error',
-            'message' => 'Phone number not found',
-        ], 404);
-    }
-
-    $otp = rand(100000, 999999);
-
-    // Send OTP via UltraMsg
-    $url = "https://api.ultramsg.com/" . env('ULTRAMSG_INSTANCE_ID') . "/messages/chat";
-    $response = Http::asForm()->post($url, [
-        'token' => env('ULTRAMSG_TOKEN'),
-        'to'    => $phone,
-        'body'  => "Your password reset OTP is: $otp",
-    ]);
-
-    $respData = $response->json();
-    if (isset($respData['error'])) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'UltraMsg error, OTP not sent',
+            'status' => 'success',
+            'message' => 'OTP sent successfully',
             'ultramsg_response' => $respData
-        ], 400);
+        ]);
     }
-
-    // Store reset flow data linked to OTP
-    Cache::put('reset_flow_' . $otp, [
-        'phone' => $phone,
-        'otp'   => $otp,
-    ], now()->addMinutes(1));
-
-    return response()->json([
-        'status' => 'success',
-        'message' => 'OTP sent successfully',
-        'ultramsg_response' => $respData
-    ]);
-}
     public function resetPassword(Request $request)
     {
         $request->validate([
