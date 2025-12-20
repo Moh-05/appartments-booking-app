@@ -49,6 +49,22 @@ public function login(Request $request)
             'notifications' => $notifications
         ]);
     }
+
+    public function approve_appartement($appartementId)
+{
+    $appartement = Appartement::findOrFail($appartementId);
+    $appartement->approval_status = 'approved';
+    $appartement->save();
+
+    // Notify the owner
+    $appartement->owner->notify(new AppartementStatusNotification($appartement));
+
+    return response()->json([
+        'message' => 'Appartement approved successfully',
+        'appartement' => $appartement
+    ]);
+}
+
     public function reject_appartement($appartementId)
     {
         $appartement = Appartement::findOrFail($appartementId);

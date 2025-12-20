@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Appartement;
 use App\Models\Booking;
 use App\Notifications\BookingStatusNotification;
 use Illuminate\Http\Request;
@@ -27,4 +28,25 @@ class OwnerController extends Controller
         'booking' => $booking
     ]);
 }
+public function rejectBooking($bookingId)
+{
+    $booking = Booking::findOrFail($bookingId);
+
+    $booking->status = 'canceled';
+    $booking->save();
+
+    $appartement = $booking->appartement;
+    $appartement->available = true;
+    $appartement->save();
+
+    $booking->user->notify(new BookingStatusNotification($booking));
+
+    return response()->json([
+        'message' => 'Booking canceled successfully',
+        'booking' => $booking
+    ]);
+}
+
+
+
 }
