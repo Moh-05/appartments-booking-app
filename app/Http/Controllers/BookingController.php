@@ -7,7 +7,7 @@ use App\Models\Booking;
 use App\Notifications\NewBookingNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon; 
+use Carbon\Carbon;
 
 class BookingController extends Controller
 {
@@ -30,7 +30,7 @@ class BookingController extends Controller
 
         $startDate  = Carbon::parse($request->start_date);
         $endDate    = Carbon::parse($request->end_date);
-        $days       = $startDate->diffInDays($endDate); 
+        $days       = $startDate->diffInDays($endDate);
         $totalPrice = $days * $appartement->price;
 
         $booking = Booking::create([
@@ -39,7 +39,7 @@ class BookingController extends Controller
             'start_date'     => $request->start_date,
             'end_date'       => $request->end_date,
             'status'         => 'pending',
-            'total_price'    => $totalPrice, 
+            'total_price'    => $totalPrice,
         ]);
 
         $booking->load(['appartement.owner', 'user']);
@@ -51,5 +51,16 @@ class BookingController extends Controller
             'message' => 'Booking request submitted, waiting for owner approval',
             'booking' => $booking,
         ], 201);
+    }
+    public function myBookings()
+    {
+        $bookings = Booking::with('appartement')
+            ->where('user_id', Auth::id())
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => $bookings
+        ], 200);
     }
 }

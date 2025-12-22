@@ -1,8 +1,5 @@
 <?php
 
-use App\Http\Controllers\AppartementController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -10,6 +7,8 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\AppartementController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\OwnerController;
+use App\Http\Controllers\ProfileController;
+
 
 // --------------------
 // 🔐 Auth & User Routes
@@ -39,11 +38,13 @@ Route::middleware('auth:sanctum')->group(function () {
 // 🏠 Appartement Routes
 // --------------------
 Route::middleware('auth:sanctum')->apiResource('appartements', AppartementController::class);
-
+Route::middleware('auth:sanctum')->get('/appartements/filter', [AppartementController::class, 'filter']);
 // --------------------
 // 📅 Booking Routes
 // --------------------
+Route::middleware('auth:sanctum')->get('/user/bookings', [BookingController::class, 'myBookings']);
 Route::middleware('auth:sanctum')->group(function () {
+
     // Create booking for an appartement
     Route::post('/appartements/{appartementId}/bookings', [BookingController::class, 'store']);
 
@@ -71,4 +72,10 @@ Route::middleware('auth:admin')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/owner/bookings/{bookingId}/approve', [OwnerController::class, 'approveBooking']);
     Route::post('/owner/bookings/{bookingId}/decline', [OwnerController::class, 'declineBooking']);
+});
+
+// تعديل شقة معينة
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::put('/appartements/{id}', [AppartementController::class, 'update']);
 });
