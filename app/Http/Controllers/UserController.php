@@ -275,5 +275,10 @@ public function verifyResetOtp(Request $request)
         ]);
     }
 
+     public function logout(request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+        return response()->json('message loged out successfully', 200);
+    }
 
 }

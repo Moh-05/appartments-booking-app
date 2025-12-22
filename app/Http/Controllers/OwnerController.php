@@ -47,6 +47,17 @@ public function rejectBooking($bookingId)
     ]);
 }
 
+public function myAppartements()
+{
+    $owner = Auth::user();
+
+    $appartements = $owner->appartements;
+
+    return response()->json([
+        'status' => 'success',
+        'data'   => $appartements
+    ], 200);
+}
 
 
 }

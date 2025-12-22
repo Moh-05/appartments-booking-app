@@ -14,6 +14,7 @@ use App\Http\Controllers\OwnerController;
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/verify', [UserController::class, 'verify']);
 Route::post('/login', [UserController::class, 'login']);
+Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::post('/forget-password', [UserController::class, 'forgetPassword']);
 Route::post('/verify-reset-otp', [UserController::class, 'verifyResetOtp']);
@@ -68,4 +69,7 @@ Route::middleware('auth:admin')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/owner/bookings/{bookingId}/approve', [OwnerController::class, 'approveBooking']);
     Route::post('/owner/bookings/{bookingId}/reject', [OwnerController::class, 'rejectBooking']);
+
+    // 🏠 Get all appartments owned by the authenticated owner
+    Route::get('/owner/appartements', [OwnerController::class, 'myAppartements']);
 });
