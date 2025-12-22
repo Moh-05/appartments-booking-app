@@ -16,6 +16,7 @@ use App\Http\Controllers\ProfileController;
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/verify', [UserController::class, 'verify']);
 Route::post('/login', [UserController::class, 'login']);
+Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::post('/forget-password', [UserController::class, 'forgetPassword']);
 Route::post('/verify-reset-otp', [UserController::class, 'verifyResetOtp']);
@@ -26,30 +27,34 @@ Route::middleware('auth:sanctum')->get('/profile', [ProfileController::class, 's
 Route::middleware('auth:sanctum')->post('/profile/update', [ProfileController::class, 'update']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
-
-    // 👉 User notifications
+    Route::get('/user', fn(Request $request) => $request->user());
     Route::get('/user/notifications', [UserController::class, 'notifications']);
 });
 
 // --------------------
 // 🏠 Appartement Routes
 // --------------------
-Route::middleware('auth:sanctum')->apiResource('appartements', AppartementController::class);
-Route::middleware('auth:sanctum')->get('/appartements/filter', [AppartementController::class, 'filter']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('appartements', AppartementController::class);
+    Route::get('/appartements/filter', [AppartementController::class, 'filter']);
+});
+
 // --------------------
 // 📅 Booking Routes
 // --------------------
 Route::middleware('auth:sanctum')->get('/user/bookings', [BookingController::class, 'myBookings']);
 Route::middleware('auth:sanctum')->group(function () {
+    // User bookings
+    Route::get('/user/bookings', [BookingController::class, 'myBookings']);
 
     // Create booking for an appartement
     Route::post('/appartements/{appartementId}/bookings', [BookingController::class, 'store']);
 
-    // Cancel a booking
-    Route::post('/bookings/{bookingId}/cancel', [BookingController::class, 'cancel']);
+    // Update booking
+    Route::put('/bookings/{bookingId}', [BookingController::class, 'updateBooking']);
+
+    // Cancel booking (user side)
+    Route::post('/bookings/{bookingId}/cancel', [BookingController::class, 'cancelBooking']);
 });
 
 // --------------------
@@ -58,10 +63,9 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('/admin/login', [AdminController::class, 'login']);
 
 Route::middleware('auth:admin')->group(function () {
-    // Notifications
     Route::get('/admin/notifications', [AdminController::class, 'notifications']);
 
-    // appartement approvals
+    // Appartement approvals
     Route::post('/admin/appartements/{appartementId}/approve', [AdminController::class, 'approve_appartement']);
     Route::post('/admin/appartements/{appartementId}/reject', [AdminController::class, 'reject_appartement']);
 });
@@ -71,11 +75,8 @@ Route::middleware('auth:admin')->group(function () {
 // --------------------
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/owner/bookings/{bookingId}/approve', [OwnerController::class, 'approveBooking']);
-    Route::post('/owner/bookings/{bookingId}/decline', [OwnerController::class, 'declineBooking']);
-});
+    Route::post('/owner/bookings/{bookingId}/reject', [OwnerController::class, 'rejectBooking']);
 
-// تعديل شقة معينة
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::put('/appartements/{id}', [AppartementController::class, 'update']);
+    // 🏠 Get all appartments owned by the authenticated owner
+    Route::get('/owner/appartements', [OwnerController::class, 'myAppartements']);
 });

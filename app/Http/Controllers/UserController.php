@@ -286,4 +286,10 @@ class UserController extends Controller
             'notifications' => $notifications
         ]);
     }
+
+    public function logout(request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+        return response()->json('message loged out successfully', 200);
+    }
 }

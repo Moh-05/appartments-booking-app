@@ -65,9 +65,61 @@ class AppartementController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Appartement $appartement)
+    public function update(Request $request, $id)
     {
-        //
+        $appartement = Appartement::findOrFail($id);
+
+        // تحقق إنو المستخدم الحالي هو صاحب الشقة
+        if ($appartement->user_id !== Auth::id()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Unauthorized: You can only update your own appartement.'
+            ], 403);
+        }
+
+        // قواعد التحقق
+        $request->validate([
+            'title'       => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'price'       => 'nullable|numeric|min:0',
+            'space'       => 'nullable|integer|min:0',
+            'rooms'       => 'nullable|integer|min:0',
+            'floor'       => 'nullable|integer|min:0',
+            'city'        => 'nullable|string|max:255',
+            'area'        => 'nullable|string|max:255',
+            'address'     => 'nullable|string|max:255',
+            'images.*'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        // تحديث الخصائص
+        $appartement->fill($request->only([
+            'title',
+            'description',
+            'price',
+            'space',
+            'rooms',
+            'floor',
+            'city',
+            'area',
+            'address',
+        ]));
+
+        // تحديث الصور إذا تم رفع صور جديدة
+        if ($request->hasFile('images')) {
+            $paths = [];
+            foreach ($request->file('images') as $image) {
+                $paths[] = $image->store('appartements', 'public');
+            }
+            $appartement->images = $paths;
+        }
+
+        $appartement->save();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Appartement updated successfully.',
+            'data'    => $appartement
+        ], 200);
     }
 
     /**
