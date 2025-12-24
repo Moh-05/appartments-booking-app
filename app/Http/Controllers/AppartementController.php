@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Http\Requests\StoreAppartementRequest;
 use App\Models\Appartement;
 use App\Notifications\NewAppartementNotification;
@@ -57,9 +58,26 @@ class AppartementController extends Controller
             'data'    => $appartement,
         ], 201);
     }
-    public function show(Appartement $appartement)
+
+    //
+    public function profileWithAppartements($username)
     {
-        //
+        // جيب المستخدم مع شققه بناءً على الـ username
+        $user = User::with('appartements')->where('username', $username)->firstOrFail();
+
+        return response()->json([
+            'status' => 'success',
+            'profile' => [
+                'id'         => $user->id,
+                'full_name'  => $user->full_name,
+                'username'   => $user->username,
+                'phone'      => $user->phone,
+                'profile_image' => $user->profile_image,
+                'id_image'   => $user->id_image,
+                'user_date'  => $user->user_date,
+            ],
+            'appartements' => $user->appartements
+        ], 200);
     }
 
     /**
@@ -148,6 +166,8 @@ class AppartementController extends Controller
             'message' => 'Appartement deleted successfully.'
         ], 200);
     }
+
+
 
 
 

@@ -28,7 +28,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'user_date' => 'date',
-       // 'password'  => 'hashed', 
+        // 'password'  => 'hashed',
     ];
 
     // Relations
