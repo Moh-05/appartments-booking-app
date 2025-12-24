@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Http\Requests\StoreAppartementRequest;
 use App\Models\Appartement;
-use App\Models\User;
 use App\Notifications\NewAppartementNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,70 +15,27 @@ class AppartementController extends Controller
     /**
      * Display a listing of the resource.
      */
-  public function index()
-{
-    $today = now();
-
-    $appartements = Appartement::with([
-        'owner',
-        'bookings' => function ($query) use ($today) {
-            $query->where('status', 'booked')
-                  ->where('start_date', '<=', $today)
-                  ->where('end_date', '>=', $today);
-        },
-        'bookings.user'
-    ])
-    // ->where('approval_status', 'approved')
-    ->get();
-
-    return response()->json([
-        'status' => 'success',
-        'data'   => $appartements
-    ], 200);
-}
-   public function store(StoreAppartementRequest $request)
-{
-    $paths = [];
-
-    if ($request->hasFile('images')) {
-        foreach ($request->file('images') as $image) {
-            $paths[] = $image->store('appartements', 'public');
-        }
-    }
-
-    $appartement = Appartement::create(array_merge(
-        $request->validated(),
-        [
-            'images'  => $paths,
-            'user_id' => Auth::id(),
-            'approval_status' => 'pending'
-
-        ]
-    ));
-
-    foreach (\App\Models\Admin::all() as $admin) {
-        $admin->notify(new NewAppartementNotification($appartement));
-    }
-
-    return response()->json([
-        'message' => 'Appartement submitted successfully. Waiting for admin approval.',
-        'data'    => $appartement,
-    ], 201);
-}
-    public function show(Appartement $appartement)
+    public function index()
     {
-        // Right now we return ALL appartements
-        $appartements = Appartement::all();
+        $today = now();
 
-        // to only show approved appartements,
-        // $appartements = Appartement::where('approval_status', 'approved')->get();
+        $appartements = Appartement::with([
+            'owner',
+            'bookings' => function ($query) use ($today) {
+                $query->where('status', 'booked')
+                    ->where('start_date', '<=', $today)
+                    ->where('end_date', '>=', $today);
+            },
+            'bookings.user'
+        ])
+            // ->where('approval_status', 'approved')
+            ->get();
 
         return response()->json([
             'status' => 'success',
             'data'   => $appartements
         ], 200);
     }
-
     public function store(StoreAppartementRequest $request)
     {
         $paths = [];
@@ -109,25 +65,17 @@ class AppartementController extends Controller
             'data'    => $appartement,
         ], 201);
     }
-
-    //
-    public function profileWithAppartements($username)
+    public function show(Appartement $appartement)
     {
-        // جيب المستخدم مع شققه بناءً على الـ username
-        $user = User::with('appartements')->where('username', $username)->firstOrFail();
+        // Right now we return ALL appartements
+        $appartements = Appartement::all();
+
+        // to only show approved appartements,
+        // $appartements = Appartement::where('approval_status', 'approved')->get();
 
         return response()->json([
             'status' => 'success',
-            'profile' => [
-                'id'         => $user->id,
-                'full_name'  => $user->full_name,
-                'username'   => $user->username,
-                'phone'      => $user->phone,
-                'profile_image' => $user->profile_image,
-                'id_image'   => $user->id_image,
-                'user_date'  => $user->user_date,
-            ],
-            'appartements' => $user->appartements
+            'data'   => $appartements
         ], 200);
     }
 
@@ -263,11 +211,4 @@ class AppartementController extends Controller
             'data'   => $appartements
         ], 200);
     }
-<<<<<<< HEAD
 }
-=======
-
-}
-
-
->>>>>>> f39ad04a4b4db3924a28332af1f849d818bcb9d2
