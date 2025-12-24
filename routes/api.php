@@ -23,6 +23,8 @@ Route::post('/reset-password', [UserController::class, 'resetPassword']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn (Request $request) => $request->user());
     Route::get('/user/notifications', [UserController::class, 'notifications']);
+    Route::get('/users/{username}/profile', [UserController::class, 'profile_user_side']);
+
 });
 
 // --------------------
@@ -31,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('appartements', AppartementController::class);
     Route::get('/appartements/filter', [AppartementController::class, 'filter']);
+
 });
 
 // --------------------
@@ -61,6 +64,7 @@ Route::middleware('auth:admin')->group(function () {
     // Appartement approvals
     Route::post('/admin/appartements/{appartementId}/approve', [AdminController::class, 'approve_appartement']);
     Route::post('/admin/appartements/{appartementId}/reject', [AdminController::class, 'reject_appartement']);
+
 });
 
 // --------------------

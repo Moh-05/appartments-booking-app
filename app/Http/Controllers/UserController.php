@@ -281,4 +281,35 @@ public function verifyResetOtp(Request $request)
         return response()->json('message loged out successfully', 200);
     }
 
+  public function profile_user_side($username)
+{
+    $today = now();
+
+    $user = User::with([
+        'appartements.owner',
+        'appartements.bookings' => function ($query) use ($today) {
+            $query->where('status', 'booked')
+                  ->where('start_date', '<=', $today)
+                  ->where('end_date', '>=', $today);
+        },
+        'appartements.bookings.user'
+    ])
+    ->where('username', $username)
+    // ->where('approval_status', 'approved') 
+    ->firstOrFail();
+
+    return response()->json([
+        'status' => 'success',
+        'profile' => [
+            'full_name'     => $user->full_name,
+            'username'      => $user->username,
+            'phone'         => $user->phone,
+            'profile_image' => $user->profile_image,
+        ],
+        'appartements' => $user->appartements
+        
+    ], 200);
+}
+    
+
 }

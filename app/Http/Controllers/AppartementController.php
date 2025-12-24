@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAppartementRequest;
 use App\Models\Appartement;
+use App\Models\User;
 use App\Notifications\NewAppartementNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,20 +15,27 @@ class AppartementController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+  public function index()
 {
-    // Right now we return ALL appartements
-    $appartements = Appartement::all();
+    $today = now();
 
-    // to only show approved appartements,
-    // $appartements = Appartement::where('approval_status', 'approved')->get();
+    $appartements = Appartement::with([
+        'owner',
+        'bookings' => function ($query) use ($today) {
+            $query->where('status', 'booked')
+                  ->where('start_date', '<=', $today)
+                  ->where('end_date', '>=', $today);
+        },
+        'bookings.user'
+    ])
+    // ->where('approval_status', 'approved') 
+    ->get();
 
     return response()->json([
         'status' => 'success',
         'data'   => $appartements
     ], 200);
 }
-
    public function store(StoreAppartementRequest $request)
 {
     $paths = [];
@@ -190,6 +198,7 @@ class AppartementController extends Controller
             'data'   => $appartements
         ], 200);
     }
+ 
+}
 
     
-}

@@ -10,54 +10,63 @@ use Illuminate\Support\Facades\Auth;
 
 class OwnerController extends Controller
 {
-  public function approveBooking($bookingId)
-{
-    $booking = Booking::findOrFail($bookingId);
+    public function approveBooking($bookingId)
+    {
+        $booking = Booking::findOrFail($bookingId);
 
-    $booking->status = 'booked';
-    $booking->save();
+        $booking->status = 'booked';
+        $booking->save();
 
-    $appartement = $booking->appartement;
-    $appartement->available = false;
-    $appartement->save();
+        $appartement = $booking->appartement;
+        $appartement->available = false;
+        $appartement->save();
 
-    $booking->user->notify(new BookingStatusNotification($booking));
+        $booking->user->notify(new BookingStatusNotification($booking));
 
-    return response()->json([
-        'message' => 'Booking approved successfully',
-        'booking' => $booking
-    ]);
-}
-public function rejectBooking($bookingId)
-{
-    $booking = Booking::findOrFail($bookingId);
+        return response()->json([
+            'message' => 'Booking approved successfully',
+            'booking' => $booking
+        ]);
+    }
+    public function rejectBooking($bookingId)
+    {
+        $booking = Booking::findOrFail($bookingId);
 
-    $booking->status = 'canceled';
-    $booking->save();
+        $booking->status = 'canceled';
+        $booking->save();
 
-    $appartement = $booking->appartement;
-    $appartement->available = true;
-    $appartement->save();
+        $appartement = $booking->appartement;
+        $appartement->available = true;
+        $appartement->save();
 
-    $booking->user->notify(new BookingStatusNotification($booking));
+        $booking->user->notify(new BookingStatusNotification($booking));
 
-    return response()->json([
-        'message' => 'Booking canceled successfully',
-        'booking' => $booking
-    ]);
-}
-
-public function myAppartements()
-{
-    $owner = Auth::user();
-
-    $appartements = $owner->appartements;
-
-    return response()->json([
-        'status' => 'success',
-        'data'   => $appartements
-    ], 200);
-}
+        return response()->json([
+            'message' => 'Booking canceled successfully',
+            'booking' => $booking
+        ]);
+    }
 
 
+    public function myAppartements()
+    {
+        $owner = Auth::user();
+        $today = now();
+
+        $appartements = Appartement::with([
+            'owner',
+            'bookings' => function ($query) use ($today) {
+                $query->where('status', 'booked')
+                    ->where('start_date', '<=', $today)
+                    ->where('end_date', '>=', $today);
+            },
+            'bookings.user'
+        ])
+            ->where('user_id', $owner->id)->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $appartements
+        ], 200);
+    }
 }
