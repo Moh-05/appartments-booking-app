@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Http\Requests\StoreAppartementRequest;
 use App\Models\Appartement;
+use App\Models\User;
 use App\Notifications\NewAppartementNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +16,57 @@ class AppartementController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+  public function index()
+{
+    $today = now();
+
+    $appartements = Appartement::with([
+        'owner',
+        'bookings' => function ($query) use ($today) {
+            $query->where('status', 'booked')
+                  ->where('start_date', '<=', $today)
+                  ->where('end_date', '>=', $today);
+        },
+        'bookings.user'
+    ])
+    // ->where('approval_status', 'approved')
+    ->get();
+
+    return response()->json([
+        'status' => 'success',
+        'data'   => $appartements
+    ], 200);
+}
+   public function store(StoreAppartementRequest $request)
+{
+    $paths = [];
+
+    if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $image) {
+            $paths[] = $image->store('appartements', 'public');
+        }
+    }
+
+    $appartement = Appartement::create(array_merge(
+        $request->validated(),
+        [
+            'images'  => $paths,
+            'user_id' => Auth::id(),
+            'approval_status' => 'pending'
+
+        ]
+    ));
+
+    foreach (\App\Models\Admin::all() as $admin) {
+        $admin->notify(new NewAppartementNotification($appartement));
+    }
+
+    return response()->json([
+        'message' => 'Appartement submitted successfully. Waiting for admin approval.',
+        'data'    => $appartement,
+    ], 201);
+}
+    public function show(Appartement $appartement)
     {
         // Right now we return ALL appartements
         $appartements = Appartement::all();
@@ -212,4 +263,11 @@ class AppartementController extends Controller
             'data'   => $appartements
         ], 200);
     }
+<<<<<<< HEAD
 }
+=======
+
+}
+
+
+>>>>>>> f39ad04a4b4db3924a28332af1f849d818bcb9d2

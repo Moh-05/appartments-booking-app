@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->post('/profile/update', [ProfileController::c
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn(Request $request) => $request->user());
     Route::get('/user/notifications', [UserController::class, 'notifications']);
+    Route::get('/users/{username}/profile', [UserController::class, 'profile_user_side']);
 });
 
 // --------------------
@@ -37,7 +38,6 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('appartements', AppartementController::class);
     Route::get('/appartements/filter', [AppartementController::class, 'filter']);
-    Route::get('/users/{id}/appartements', [AppartementController::class, 'userAppartements']);
 });
 
 // --------------------

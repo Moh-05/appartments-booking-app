@@ -33,6 +33,20 @@ class Appartement extends Model
         'available' => 'boolean',
     ];
 
+
+    public function isAvailable(): bool
+{
+    $today = now();
+
+    $activeBooking = $this->bookings()
+        ->where('status', 'booked')
+        ->where('start_date', '<=', $today)
+        ->where('end_date', '>=', $today)
+        ->exists();
+
+    return !$activeBooking;
+}
+
     // Relations
     public function owner()
     {

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class BookingController extends Controller
+
 {
     public function store(Request $request, $appartementId)
     {

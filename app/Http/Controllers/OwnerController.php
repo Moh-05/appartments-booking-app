@@ -47,15 +47,26 @@ class OwnerController extends Controller
         ]);
     }
 
+
     public function myAppartements()
     {
         $owner = Auth::user();
+        $today = now();
 
-        $appartements = $owner->appartements;
+        $appartements = Appartement::with([
+            'owner',
+            'bookings' => function ($query) use ($today) {
+                $query->where('status', 'booked')
+                    ->where('start_date', '<=', $today)
+                    ->where('end_date', '>=', $today);
+            },
+            'bookings.user'
+        ])
+            ->where('user_id', $owner->id)->get();
 
         return response()->json([
             'status' => 'success',
-            'data'   => $appartements
+            'data' => $appartements
         ], 200);
     }
 }
