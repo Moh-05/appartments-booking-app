@@ -35,17 +35,17 @@ class Appartement extends Model
 
 
     public function isAvailable(): bool
-{
-    $today = now();
+    {
+        $today = now();
 
-    $activeBooking = $this->bookings()
-        ->where('status', 'booked')
-        ->where('start_date', '<=', $today)
-        ->where('end_date', '>=', $today)
-        ->exists();
+        $activeBooking = $this->bookings()
+            ->where('status', 'booked')
+            ->where('start_date', '<=', $today)
+            ->where('end_date', '>=', $today)
+            ->exists();
 
-    return !$activeBooking;
-}
+        return !$activeBooking;
+    }
 
     // Relations
     public function owner()
@@ -56,5 +56,9 @@ class Appartement extends Model
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
     }
 }

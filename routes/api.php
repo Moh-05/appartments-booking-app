@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\AppartementController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\ProfileController;
 
@@ -80,4 +81,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 🏠 Get all appartments owned by the authenticated owner
     Route::get('/owner/appartements', [OwnerController::class, 'myAppartements']);
+});
+
+// favorites
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/favorites', [FavoriteController::class, 'index']);
+    Route::post('/favorites/{appartementId}', [FavoriteController::class, 'store']);
+    Route::delete('/favorites/{appartementId}', [FavoriteController::class, 'destroy']);
 });
