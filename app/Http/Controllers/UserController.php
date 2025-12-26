@@ -322,4 +322,29 @@ class UserController extends Controller
 
         ], 200);
     }
+
+
+
+     public function deleteAccount(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($user) {
+            $user->delete();
+
+        
+            Auth::logout();
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Your account has been deleted successfully.'
+            ]);
+        }
+
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'No authenticated user found.'
+        ], 404);
+    }
+
 }

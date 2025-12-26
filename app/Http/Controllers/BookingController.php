@@ -122,15 +122,29 @@ class BookingController extends Controller
             'booking' => $booking
         ]);
     }
-    public function myBookings()
-    {
-        $bookings = Booking::with('appartement')
-            ->where('user_id', Auth::id())
-            ->get();
+   public function pastBookings()
+{
+    $bookings = Booking::with(['appartement.owner']) 
+        ->where('user_id', Auth::id())
+        ->whereIn('status', ['canceled', 'completed'])
+        ->get();
 
-        return response()->json([
-            'status' => 'success',
-            'data'   => $bookings
-        ], 200);
-    }
+    return response()->json([
+        'status' => 'success',
+        'data'   => $bookings
+    ], 200);
+}
+
+public function ongoingBookings()
+{
+    $bookings = Booking::with(['appartement.owner']) 
+        ->where('user_id', Auth::id())
+        ->whereIn('status', ['booked', 'pending'])
+        ->get();
+
+    return response()->json([
+        'status' => 'success',
+        'data'   => $bookings
+    ], 200);
+}
 }

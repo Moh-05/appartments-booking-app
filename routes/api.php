@@ -9,7 +9,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\OwnerController;
 use App\Http\Controllers\ProfileController;
-
+use App\Http\Controllers\RatingController;
 
 // --------------------
 // 🔐 Auth & User Routes
@@ -22,7 +22,8 @@ Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanc
 Route::post('/forget-password', [UserController::class, 'forgetPassword']);
 Route::post('/verify-reset-otp', [UserController::class, 'verifyResetOtp']);
 Route::post('/reset-password', [UserController::class, 'resetPassword']);
-Route::middleware('auth:sanctum')->post('/logout-all', [UserController::class, 'logoutAll']);
+//delte your account !!!
+Route::delete('/user/delete', [UserController::class, 'deleteAccount']);
 
 Route::middleware('auth:sanctum')->get('/profile', [ProfileController::class, 'show']);
 Route::middleware('auth:sanctum')->post('/profile/update', [ProfileController::class, 'update']);
@@ -44,10 +45,11 @@ Route::middleware('auth:sanctum')->group(function () {
 // --------------------
 // 📅 Booking Routes
 // --------------------
-Route::middleware('auth:sanctum')->get('/user/bookings', [BookingController::class, 'myBookings']);
 Route::middleware('auth:sanctum')->group(function () {
     // User bookings
-    Route::get('/user/bookings', [BookingController::class, 'myBookings']);
+    Route::get('/bookings/past', [BookingController::class, 'pastBookings']);
+    Route::get('/bookings/ongoing', [BookingController::class, 'ongoingBookings']);
+
 
     // Create booking for an appartement
     Route::post('/appartements/{appartementId}/bookings', [BookingController::class, 'store']);
@@ -85,7 +87,26 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // favorites
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/favorites', [FavoriteController::class, 'index']);
-    Route::post('/favorites/{appartementId}', [FavoriteController::class, 'store']);
-    Route::delete('/favorites/{appartementId}', [FavoriteController::class, 'destroy']);
+    Route::post('/favorites/{id}', [FavoriteController::class, 'toggleFavorite']);
+    Route::get('/favorites', [FavoriteController::class, 'myFavorites']);
+
+
+
+    //ratings
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/appartements/{id}/rate', [RatingController::class, 'rate']);
+        Route::get('/appartements/{id}/my-rating', [RatingController::class, 'myRating']);
+    });
+
+    Route::get('/appartements/{id}/average-rating', [RatingController::class, 'apartmentAverage']);
+
+
+
+
+    // favorites
+    Route::middleware('auth')->group(function () {
+        Route::post('/favorites/{appartementId}/toggle', [FavoriteController::class, 'toggleFavorite']);
+        Route::get('/favorites', [FavoriteController::class, 'myFavorites']);
+    });
+
 });

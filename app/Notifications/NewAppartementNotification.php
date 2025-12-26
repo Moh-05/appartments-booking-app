@@ -31,14 +31,14 @@ class NewAppartementNotification extends Notification
     /**
      * Get the array representation of the notification.
      */
-    public function toArray($notifiable)
-    {
-        return [
-            'message'        => "New appartement submitted for approval",
-            'appartement_id' => $this->appartement->id,
-            'title'          => $this->appartement->title ?? null,
-            'user_id'        => $this->appartement->user_id,
-            'status'         => $this->appartement->approval_status,
-        ];
-    }
+   public function toArray($notifiable)
+{
+    return [
+        'message'        => "New appartement submitted for approval",
+        'appartement_id' => $this->appartement->id,
+        'title'          => $this->appartement->title ?? null,
+        'owner'          => $this->appartement->owner?->username,
+        'status'         => $this->appartement->approval_status,
+    ];
+}
 }

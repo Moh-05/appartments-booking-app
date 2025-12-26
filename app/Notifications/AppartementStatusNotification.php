@@ -38,7 +38,7 @@ class AppartementStatusNotification extends Notification
             'appartement_id' => $this->appartement->id,
             'title'          => $this->appartement->title ?? null,
             'status'         => $this->appartement->approval_status,
-            'user_id'        => $this->appartement->user_id,
+            'owner'        => $this->appartement->owner()->username()
         ];
     }
 }

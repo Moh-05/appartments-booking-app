@@ -36,10 +36,9 @@ class NewBookingNotification extends Notification
     return [
         'message'           => 'New booking request submitted',
         'booking_id'        => $this->booking->id,
-        'user_id'           => $this->booking->user_id, 
+        'from'           => $this->booking->user->username, 
         'appartement_id'    => $this->booking->appartement_id,
-        'appartement_title' => $this->booking->appartement->title,
-        'owner_id'          => $this->booking->appartement->owner->id, 
+        'appartement_title' => $this->booking->appartement->title, 
         'start_date'        => $this->booking->start_date, 
         'end_date'          => $this->booking->end_date,
         'total_price'       => $this->booking->total_price, 

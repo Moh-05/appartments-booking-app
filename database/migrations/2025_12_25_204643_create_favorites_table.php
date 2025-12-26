@@ -13,7 +13,21 @@ return new class extends Migration
     {
         Schema::create('favorites', function (Blueprint $table) {
             $table->id();
+
+            // علاقة مع المستخدم
+            $table->foreignId('user_id')
+                  ->constrained()
+                  ->onDelete('cascade');
+
+            // علاقة مع الشقة
+            $table->foreignId('appartement_id')
+                  ->constrained()
+                  ->onDelete('cascade');
+
             $table->timestamps();
+
+            // تأكد ما يتكرر نفس المستخدم مع نفس الشقة
+            $table->unique(['user_id', 'appartement_id']);
         });
     }
 
@@ -25,3 +39,4 @@ return new class extends Migration
         Schema::dropIfExists('favorites');
     }
 };
+
