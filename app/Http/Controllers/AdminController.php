@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Admin;
 use App\Models\Booking;
 use App\Models\Appartement;
+use App\Models\User;
 use App\Notifications\BookingStatusNotification;
 use App\Notifications\AppartementStatusNotification;
 use Illuminate\Http\Request;
@@ -22,22 +23,26 @@ public function login(Request $request)
         'password' => 'required|string',
     ]);
 
-    // Find admin by username
+    // ابحث عن الأدمن بالـ username
     $admin = Admin::where('username', $request->username)->first();
 
-    // Compare plain text password directly
+    // تحقق من كلمة المرور بالنص الصريح
     if (!$admin || $admin->password !== $request->password) {
-        return response()->json(['message' => 'Invalid username or password'], 401);
+        return back()->withErrors(['message' => 'Invalid username or password']);
     }
 
-    // Create Sanctum token
-    $token = $admin->createToken('admin_auth_token')->plainTextToken;
+    // سجّل الأدمن في الـ guard (auth:admin) باستخدام الـ session
+    Auth::guard('admin')->login($admin);
 
-    return response()->json([
-        'message' => 'Admin logged in successfully',
-        'admin'   => $admin,
-        'token'   => $token
-    ], 200);
+    // إعادة التوجيه مباشرة إلى الـ Dashboard
+    return redirect()->route('admin.dashboard');
+}
+
+
+public function users()
+{
+    $users = User::with(['bookings', 'appartements'])->get();
+    return view('Admin_Dashboard', compact('users'));
 }
 
     // Show all notifications for the logged-in admin

@@ -17,22 +17,20 @@ class RatingController extends Controller
         $appartement = Appartement::findOrFail($appartementId);
         $user = Auth::user();
 
-        // أضف أو حدّث التقييم في الجدول الوسيط
         $user->ratedAppartements()->syncWithoutDetaching([
             $appartement->id => ['rating' => $request->rating]
         ]);
 
-        // حساب المتوسط من الجدول الوسيط
+        
         $avg = $appartement->raters()->avg('rating');
 
-        // تحديث العمود rating في جدول appartments
         $appartement->rating = $avg;
         $appartement->save();
 
         return response()->json([
             'status' => 'success',
             'your_rating' => $request->rating,
-            'avgRating' => $appartement->rating, // نعرضه باسم avgRating لكن القيمة من العمود rating
+            'avgRating' => $appartement->rating, 
         ]);
     }
 
@@ -63,7 +61,7 @@ class RatingController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'avgRating' => $appartement->rating, // نعرضه باسم avgRating لكن القيمة من العمود rating
+            'avgRating' => $appartement->rating, 
             'ratingsCount' => $appartement->raters()->count(),
         ]);
     }
