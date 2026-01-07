@@ -274,6 +274,30 @@ class UserController extends Controller
         ]);
     }
 
+    public function changePassword(Request $request)
+{
+    $request->validate([
+        'current_password'      => 'required|string',
+        'new_password'          => 'required|string|min:6|confirmed',
+    ]);
+    $user = Auth::user();
+
+    if (!Hash::check($request->current_password, $user->password)) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'The current password is incorrect'
+        ], 400);
+    }
+
+    $user->password = Hash::make($request->new_password);
+    $user->save();
+
+    return response()->json([
+        'status'  => 'success',
+        'message' => 'Password changed successfully'
+    ]);
+}
+
     public function notifications()
     {
         $user = Auth::user();
@@ -325,26 +349,37 @@ class UserController extends Controller
 
 
 
-     public function deleteAccount(Request $request)
-    {
-        $user = Auth::user();
+    public function deleteAccount(Request $request)
+{
+    $request->validate([
+        'password' => 'required|string',
+    ]);
 
-        if ($user) {
-            $user->delete();
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
 
-        
-            Auth::logout();
-
-            return response()->json([
-                'status'  => 'success',
-                'message' => 'Your account has been deleted successfully.'
-            ]);
-        }
-
+    if (!$user) {
         return response()->json([
             'status'  => 'error',
             'message' => 'No authenticated user found.'
         ], 404);
     }
 
+    // تحقق من كلمة المرور
+    if (!Hash::check($request->password, $user->password)) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'The provided password is incorrect.'
+        ], 400);
+    }
+
+    $user->delete();
+
+    Auth::logout();
+
+    return response()->json([
+        'status'  => 'success',
+        'message' => 'Your account has been deleted successfully.'
+    ]);
+}
 }

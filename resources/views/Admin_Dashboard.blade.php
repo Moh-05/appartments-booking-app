@@ -50,62 +50,23 @@
                         <th>#</th><th>Full Name</th><th>Username</th><th>Phone</th><th>Date</th><th>Actions</th>
                     </tr>
                 </thead>
-               <tbody>
-    <tr>
-        <td>1</td><td>Mohamad Mohamad</td><td>mohamad</td><td>099999999</td><td>2025-12-27</td>
-        <td>
-            <button class="btn btn-primary" onclick="openModal('bookingsModal')">Bookings</button>
-            <button class="btn btn-info" onclick="openModal('appartementsModal')">Appartements</button>
-            <button class="btn btn-warning" onclick="openModal('detailsModal')">More Details</button>
-            <button class="btn btn-danger">Delete</button>
-        </td>
-    </tr>
-    <tr>
-        <td>2</td><td>Mohamad 2</td><td>moh</td><td>098888888</td><td>2025-12-26</td>
-        <td>
-            <button class="btn btn-primary" onclick="openModal('bookingsModal')">Bookings</button>
-            <button class="btn btn-info" onclick="openModal('appartementsModal')">Appartements</button>
-            <button class="btn btn-warning" onclick="openModal('detailsModal')">More Details</button>
-            <button class="btn btn-danger">Delete</button>
-        </td>
-    </tr>
-    <tr>
-        <td>3</td><td>Amer Alzaibak</td><td>amer</td><td>097777777</td><td>2025-12-25</td>
-        <td>
-            <button class="btn btn-primary" onclick="openModal('bookingsModal')">Bookings</button>
-            <button class="btn btn-info" onclick="openModal('appartementsModal')">Appartements</button>
-            <button class="btn btn-warning" onclick="openModal('detailsModal')">More Details</button>
-            <button class="btn btn-danger">Delete</button>
-        </td>
-    </tr>
-    <tr>
-        <td>4</td><td>Aya</td><td>aya</td><td>096666666</td><td>2025-12-24</td>
-        <td>
-            <button class="btn btn-primary" onclick="openModal('bookingsModal')">Bookings</button>
-            <button class="btn btn-info" onclick="openModal('appartementsModal')">Appartements</button>
-            <button class="btn btn-warning" onclick="openModal('detailsModal')">More Details</button>
-            <button class="btn btn-danger">Delete</button>
-        </td>
-    </tr>
-    <tr>
-        <td>5</td><td>Leen</td><td>leen</td><td>095555555</td><td>2025-12-23</td>
-        <td>
-            <button class="btn btn-primary" onclick="openModal('bookingsModal')">Bookings</button>
-            <button class="btn btn-info" onclick="openModal('appartementsModal')">Appartements</button>
-            <button class="btn btn-warning" onclick="openModal('detailsModal')">More Details</button>
-            <button class="btn btn-danger">Delete</button>
-        </td>
-    </tr>
-    <tr>
-        <td>6</td><td>Sami</td><td>sami</td><td>094444444</td><td>2025-12-22</td>
-        <td>
-            <button class="btn btn-primary" onclick="openModal('bookingsModal')">Bookings</button>
-            <button class="btn btn-info" onclick="openModal('appartementsModal')">Appartements</button>
-            <button class="btn btn-warning" onclick="openModal('detailsModal')">More Details</button>
-            <button class="btn btn-danger">Delete</button>
-        </td>
-    </tr>
-</tbody>
+                <tbody>
+                    @foreach($users as $user)
+                    <tr>
+                        <td>{{ $user->id }}</td>
+                        <td>{{ $user->full_name }}</td>
+                        <td>{{ $user->username }}</td>
+                        <td>{{ $user->phone }}</td>
+                        <td>{{ $user->created_at->format('Y-m-d') }}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="openModal('bookingsModal', {{ $user->id }})">Bookings</button>
+                            <button class="btn btn-info" onclick="openModal('appartementsModal', {{ $user->id }})">Appartements</button>
+                            <button class="btn btn-warning" onclick="openModal('detailsModal', {{ $user->id }})">More Details</button>
+                            <button class="btn btn-danger">Delete</button>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
             </table>
         </div>
     </div>
@@ -126,7 +87,7 @@
     <div id="detailsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h3>User Details</h3><span class="close" onclick="closeModal('detailsModal')">&times;</span></div>
-            <div class="modal-body"><p>Full Name: Example User</p><p>Email: example@email.com</p><p>Address: Damascus, Syria</p></div>
+            <div class="modal-body"></div>
         </div>
     </div>
     <div id="notificationsModal" class="modal">
@@ -137,7 +98,7 @@
     </div>
 
     <script>
-        function openModal(id) {
+        function openModal(id, userId = null) {
             const modal = document.getElementById(id);
             modal.style.display = 'flex';
             let body = modal.querySelector('.modal-body');
@@ -148,12 +109,15 @@
                 body.innerHTML += "<p>🔔 User John created a new booking.</p>";
             }
             if (id === 'appartementsModal') {
-                body.innerHTML += "<p>🏠 New Appartement: Homs - Waiting for admin approval.</p>";
-                body.innerHTML += "<p>🏠 Appartement #2: Aleppo - Pending.</p>";
+                body.innerHTML += "<p>🏠 Appartements for user ID: " + userId + "</p>";
+                // هنا تقدر تستخدم AJAX أو تمرر بيانات من Laravel لعرض شقق المستخدم
             }
             if (id === 'bookingsModal') {
-                body.innerHTML += "<p>📅 New Booking: Apartment C - Date: 2025-12-30</p>";
-                body.innerHTML += "<p>📅 Booking #2: Apartment B - Date: 2025-12-25</p>";
+                body.innerHTML += "<p>📅 Bookings for user ID: " + userId + "</p>";
+                // نفس الشيء: تجيب الحجوزات من DB
+            }
+            if (id === 'detailsModal') {
+                body.innerHTML += "<p>Details for user ID: " + userId + "</p>";
             }
         }
 

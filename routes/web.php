@@ -15,12 +15,8 @@ Route::post('/admin/login', [AdminController::class, 'login'])->name('admin.logi
 
 Route::middleware('auth:admin')->group(function () {
 
-
-    // Dashboard
-Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
-    Route::get('/admin/dashboard', function () {
-        return view('Admin_Dashboard');
-    })->name('admin.dashboard');
+    // Dashboard → يعرض جدول المستخدمين
+    Route::get('/admin/dashboard', [AdminController::class, 'users'])->name('admin.dashboard');
 
     // Notifications
     Route::get('/admin/notifications', [AdminController::class, 'notifications'])->name('admin.notifications');
@@ -29,5 +25,6 @@ Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users
     Route::post('/admin/appartements/{appartementId}/approve', [AdminController::class, 'approve_appartement'])->name('admin.appartements.approve');
     Route::post('/admin/appartements/{appartementId}/reject', [AdminController::class, 'reject_appartement'])->name('admin.appartements.reject');
 
+    // Logout
     Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
 });

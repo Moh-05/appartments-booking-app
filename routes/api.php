@@ -22,16 +22,20 @@ Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanc
 Route::post('/forget-password', [UserController::class, 'forgetPassword']);
 Route::post('/verify-reset-otp', [UserController::class, 'verifyResetOtp']);
 Route::post('/reset-password', [UserController::class, 'resetPassword']);
-//delte your account !!!
-Route::delete('/user/delete', [UserController::class, 'deleteAccount']);
 
-Route::middleware('auth:sanctum')->get('/profile', [ProfileController::class, 'show']);
-Route::middleware('auth:sanctum')->post('/profile/update', [ProfileController::class, 'update']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn(Request $request) => $request->user());
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::post('/profile/update', [ProfileController::class, 'update']);
     Route::get('/user/notifications', [UserController::class, 'notifications']);
     Route::get('/users/{username}/profile', [UserController::class, 'profile_user_side']);
+
+    //change password 
+    Route::post('/change-password', [UserController::class, 'changePassword']);
+    //delte your account !!!
+    Route::delete('/user/delete', [UserController::class, 'deleteAccount']);
+
 });
 
 // --------------------
@@ -101,12 +105,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/appartements/{id}/average-rating', [RatingController::class, 'apartmentAverage']);
 
 
-
-
-    // favorites
-    Route::middleware('auth')->group(function () {
-        Route::post('/favorites/{appartementId}/toggle', [FavoriteController::class, 'toggleFavorite']);
-        Route::get('/favorites', [FavoriteController::class, 'myFavorites']);
-    });
 
 });
