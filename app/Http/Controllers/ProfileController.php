@@ -28,20 +28,19 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // تحديث الصورة الشخصية إذا انرفعت
+    
         if ($request->hasFile('profile_image')) {
             $user->profile_image = $request->file('profile_image')->store('profile_images', 'public');
         }
 
-        // تحديث صورة الهوية إذا انرفعت
+        
         if ($request->hasFile('id_image')) {
             $user->id_image = $request->file('id_image')->store('id_images', 'public');
         }
 
-        // تحديث الحقول النصية فقط إذا وصلت
+        
         $user->full_name = $request->filled('full_name') ? $request->full_name : $user->full_name;
         $user->username  = $request->filled('username')  ? $request->username  : $user->username;
         $user->phone     = $request->filled('phone')     ? $request->phone     : $user->phone;

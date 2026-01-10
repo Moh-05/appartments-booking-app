@@ -34,8 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //change password 
     Route::post('/change-password', [UserController::class, 'changePassword']);
     //delte your account !!!
-    Route::delete('/user/delete', [UserController::class, 'deleteAccount']);
-
+   Route::post('/user/delete', [UserController::class, 'deleteAccount'])->name('user.delete');
 });
 
 // --------------------
