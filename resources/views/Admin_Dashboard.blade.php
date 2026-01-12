@@ -33,7 +33,7 @@
     <div class="navbar">
         <h2>Admin Dashboard</h2>
         <div class="notifications" onclick="openModal('notificationsModal')">
-            🔔 <span class="badge">3</span>
+            🔔 <span class="badge" id="notifBadge">0</span>
         </div>
     </div>
 
@@ -71,29 +71,11 @@
         </div>
     </div>
 
-    <!-- Modals -->
-    <div id="bookingsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3>User Bookings</h3><span class="close" onclick="closeModal('bookingsModal')">&times;</span></div>
-            <div class="modal-body"></div>
-        </div>
-    </div>
-    <div id="appartementsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3>User Appartements</h3><span class="close" onclick="closeModal('appartementsModal')">&times;</span></div>
-            <div class="modal-body"></div>
-        </div>
-    </div>
-    <div id="detailsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3>User Details</h3><span class="close" onclick="closeModal('detailsModal')">&times;</span></div>
-            <div class="modal-body"></div>
-        </div>
-    </div>
+    <!-- Notifications Modal -->
     <div id="notificationsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header"><h3>Notifications</h3><span class="close" onclick="closeModal('notificationsModal')">&times;</span></div>
-            <div class="modal-body"></div>
+            <div class="modal-body" id="notifBody"></div>
         </div>
     </div>
 
@@ -105,19 +87,43 @@
             body.innerHTML = "";
 
             if (id === 'notificationsModal') {
-                body.innerHTML += "<p>🔔 A new appartement was submitted for approval!</p>";
-                body.innerHTML += "<p>🔔 User John created a new booking.</p>";
-            }
-            if (id === 'appartementsModal') {
-                body.innerHTML += "<p>🏠 Appartements for user ID: " + userId + "</p>";
-                // هنا تقدر تستخدم AJAX أو تمرر بيانات من Laravel لعرض شقق المستخدم
-            }
-            if (id === 'bookingsModal') {
-                body.innerHTML += "<p>📅 Bookings for user ID: " + userId + "</p>";
-                // نفس الشيء: تجيب الحجوزات من DB
-            }
-            if (id === 'detailsModal') {
-                body.innerHTML += "<p>Details for user ID: " + userId + "</p>";
+                fetch('/admin/notifications')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.notifications || data.notifications.length === 0) {
+                            body.innerHTML = "<p>No notifications found.</p>";
+                        } else {
+                            data.notifications.forEach(n => {
+                                let actionHtml = "";
+
+                                if (n.status === "approved") {
+                                    actionHtml = `<p>✅ Appartement (${n.title ?? 'N/A'}) was approved</p>`;
+                                } else if (n.status === "rejected") {
+                                    actionHtml = `<p>❌ Appartement (${n.title ?? 'N/A'}) was rejected</p>`;
+                                } else {
+                                    actionHtml = `
+                                        <button class="btn btn-primary" onclick="approveAppartement(${n.appartement_id})">Approve</button>
+                                        <button class="btn btn-danger" onclick="rejectAppartement(${n.appartement_id})">Reject</button>
+                                    `;
+                                }
+
+                                body.innerHTML += `
+                                    <div style="border-bottom:1px solid #ddd; padding:8px;">
+                                        <p><strong>${n.message}</strong></p>
+                                        <p>🏠 Title: ${n.title ?? 'N/A'}</p>
+                                        <p>👤 Owner: ${n.owner ?? 'N/A'}</p>
+                                        <p>Status: <span id="status-${n.appartement_id}">${n.status}</span></p>
+                                        <p>📅 Date: ${n.created_at}</p>
+                                        ${actionHtml}
+                                    </div>
+                                `;
+                            });
+                        }
+                        document.getElementById('notifBadge').textContent = data.notifications.length;
+                    })
+                    .catch(err => {
+                        body.innerHTML = "<p>Error loading notifications.</p>";
+                    });
             }
         }
 
@@ -133,6 +139,57 @@
                 row.style.display = username.indexOf(input) > -1 ? "" : "none";
             });
         }
+
+        // Approve function
+        function approveAppartement(id) {
+            fetch(`/admin/appartements/${id}/approve`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById(`status-${id}`).textContent = 'approved';
+                alert(data.message);
+                const parentDiv = document.getElementById(`status-${id}`).parentElement;
+                parentDiv.querySelectorAll('button').forEach(btn => btn.remove());
+                parentDiv.insertAdjacentHTML('beforeend', `<p>✅ Appartement (${data.appartement.title}) was approved</p>`);
+            })
+            .catch(err => alert("Error approving appartement"));
+        }
+
+                // Reject function
+        function rejectAppartement(id) {
+            fetch(`/admin/appartements/${id}/reject`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById(`status-${id}`).textContent = 'rejected';
+                alert(data.message);
+                const parentDiv = document.getElementById(`status-${id}`).parentElement;
+                // إزالة الأزرار القديمة
+                parentDiv.querySelectorAll('button').forEach(btn => btn.remove());
+                // إضافة النص الجديد
+                parentDiv.insertAdjacentHTML('beforeend', `<p>❌ Appartement (${data.appartement.title}) was rejected</p>`);
+            })
+            .catch(err => alert("Error rejecting appartement"));
+        }
+
+        // تحديث عدد الإشعارات عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/admin/notifications')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('notifBadge').textContent = data.notifications.length;
+                });
+        });
     </script>
 </body>
 </html>

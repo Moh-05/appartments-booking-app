@@ -37,7 +37,7 @@ class NewAppartementNotification extends Notification
         'message'        => "New appartement submitted for approval",
         'appartement_id' => $this->appartement->id,
         'title'          => $this->appartement->title ?? null,
-        'owner'          => $this->appartement->owner?->username,
+        'owner'          => $this->appartement->owner->username,
         'status'         => $this->appartement->approval_status,
     ];
 }

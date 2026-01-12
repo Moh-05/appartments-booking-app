@@ -33,7 +33,7 @@ class AppartementController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data'   => $appartements
+            'data' => $appartements
         ], 200);
     }
     public function store(StoreAppartementRequest $request)
@@ -49,12 +49,13 @@ class AppartementController extends Controller
         $appartement = Appartement::create(array_merge(
             $request->validated(),
             [
-                'images'  => $paths,
+                'images' => $paths,
                 'user_id' => Auth::id(),
                 'approval_status' => 'pending'
 
             ]
         ));
+        $appartement->load('owner');
 
         foreach (\App\Models\Admin::all() as $admin) {
             $admin->notify(new NewAppartementNotification($appartement));
@@ -62,7 +63,7 @@ class AppartementController extends Controller
 
         return response()->json([
             'message' => 'Appartement submitted successfully. Waiting for admin approval.',
-            'data'    => $appartement,
+            'data' => $appartement,
         ], 201);
     }
     public function show(Appartement $appartement)
@@ -75,7 +76,7 @@ class AppartementController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data'   => $appartements
+            'data' => $appartements
         ], 200);
     }
 
@@ -89,23 +90,23 @@ class AppartementController extends Controller
         // تحقق إنو المستخدم الحالي هو صاحب الشقة
         if ($appartement->user_id !== Auth::id()) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Unauthorized: You can only update your own appartement.'
             ], 403);
         }
 
         // قواعد التحقق
         $request->validate([
-            'title'       => 'nullable|string|max:255',
+            'title' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'price'       => 'nullable|numeric|min:0',
-            'space'       => 'nullable|integer|min:0',
-            'rooms'       => 'nullable|integer|min:0',
-            'floor'       => 'nullable|integer|min:0',
-            'city'        => 'nullable|string|max:255',
-            'area'        => 'nullable|string|max:255',
-            'address'     => 'nullable|string|max:255',
-            'images.*'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'price' => 'nullable|numeric|min:0',
+            'space' => 'nullable|integer|min:0',
+            'rooms' => 'nullable|integer|min:0',
+            'floor' => 'nullable|integer|min:0',
+            'city' => 'nullable|string|max:255',
+            'area' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         // تحديث الخصائص
@@ -133,21 +134,22 @@ class AppartementController extends Controller
         $appartement->save();
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'Appartement updated successfully.',
-            'data'    => $appartement
+            'data' => $appartement
         ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
-     */ public function destroy($id)
+     */
+    public function destroy($id)
     {
         $appartement = Appartement::findOrFail($id);
 
         if ($appartement->owner->id !== Auth::id()) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Unauthorized: You can only delete your own appartement.'
             ], 403);
         }
@@ -161,7 +163,7 @@ class AppartementController extends Controller
         $appartement->delete();
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'Appartement deleted successfully.'
         ], 200);
     }
@@ -208,7 +210,7 @@ class AppartementController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data'   => $appartements
+            'data' => $appartements
         ], 200);
     }
 }

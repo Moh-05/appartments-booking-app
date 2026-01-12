@@ -23,8 +23,10 @@ return new class extends Migration {
     $table->enum('status', [
         'pending',
         'booked',
-        'cancelled'
+        'cancelled',
+        'completed'
     ])->default('pending');
+    
 
     // Optional extras
     $table->decimal('total_price', 10, 2)->nullable();

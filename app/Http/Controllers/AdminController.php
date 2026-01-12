@@ -46,14 +46,26 @@ public function users()
 }
 
     // Show all notifications for the logged-in admin
-    public function notifications()
-    {
-       $notifications = Auth::guard('admin')->user()->notifications;
+ 
+public function notifications()
+{
+  $notifications = Auth::guard('admin')->user()->notifications->map(function ($notification) {
+    $appartement = Appartement::with('owner')->find($notification->data['appartement_id']);
 
-        return response()->json([
-            'notifications' => $notifications
-        ]);
-    }
+    return [
+        'id'             => $notification->id,
+        'message'        => $notification->data['message'] ?? null,
+        'appartement_id' => $notification->data['appartement_id'] ?? null,
+        'title'          => $appartement?->title ?? 'N/A',
+        'owner'          => $appartement?->owner?->username ?? 'Unknown Owner',
+        'status'         => $appartement?->approval_status ?? 'N/A',
+        'created_at'     => $notification->created_at->format('Y-m-d H:i'),
+    ];
+});
+    return response()->json([
+        'notifications' => $notifications
+    ]);
+}
 
     public function approve_appartement($appartementId)
 {
