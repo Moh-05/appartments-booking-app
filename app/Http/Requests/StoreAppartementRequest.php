@@ -24,9 +24,8 @@ class StoreAppartementRequest extends FormRequest
     {
         return [
             'title'       => 'required|string|max:30',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'price'       => 'required|numeric|min:0',
-            'rating'      => 'nullable|numeric|min:0|max:5',
             'images'      => 'required|array',
             'images.*'    => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
             'space'       => 'required|integer|min:1',
@@ -34,7 +33,7 @@ class StoreAppartementRequest extends FormRequest
             'floor'       => 'required|integer|min:0',
             'city'        => 'required|string',
             'area'        => 'required|string',
-            'address'     => 'nullable|string',
+            'address'     => 'required|string',
         ];
     }
 }
