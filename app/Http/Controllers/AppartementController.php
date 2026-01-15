@@ -173,44 +173,54 @@ class AppartementController extends Controller
 
 
     public function filter(Request $request)
-    {
-        $query = Appartement::query();
+{
+    $query = Appartement::query();
 
-        if ($request->filled('city')) {
-            $query->where('city', $request->city);
-        }
-
-        if ($request->filled('area')) {
-            $query->where('area', $request->area);
-        }
-
-        if ($request->filled('min_price')) {
-            $query->where('price', '>=', $request->min_price);
-        }
-
-        if ($request->filled('max_price')) {
-            $query->where('price', '<=', $request->max_price);
-        }
-
-        if ($request->filled('rooms')) {
-            $query->where('rooms', $request->rooms);
-        }
-
-        // ✅ فلترة على floor
-        if ($request->filled('floor')) {
-            $query->where('floor', $request->floor);
-        }
-
-        // ✅ فلترة على space
-        if ($request->filled('space')) {
-            $query->where('space', '>=', $request->space);
-        }
-
-        $appartements = $query->get();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $appartements
-        ], 200);
+    if ($request->filled('city')) {
+        $query->where('city', $request->city);
     }
+
+    if ($request->filled('area')) {
+        $query->where('area', $request->area);
+    }
+
+    if ($request->filled('min_price')) {
+        $query->where('price', '>=', $request->min_price);
+    }
+
+    if ($request->filled('max_price')) {
+        $query->where('price', '<=', $request->max_price);
+    }
+
+    if ($request->filled('rooms')) {
+        $query->where('rooms', $request->rooms);
+    }
+
+    if ($request->filled('floor')) {
+        $query->where('floor', $request->floor);
+    }
+
+    if ($request->filled('space')) {
+        $query->where('space', '>=', $request->space);
+    }
+
+    // ✅ فلترة على rating
+    if ($request->filled('rating')) {
+        $query->where('rating', '>=', $request->rating);
+    }
+
+    $appartements = $query->get();
+
+    if ($appartements->isEmpty()) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'No appartements found matching the criteria'
+        ], 404);
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'data' => $appartements
+    ], 200);
+}
 }

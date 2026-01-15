@@ -16,13 +16,13 @@ class UserController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'full_name'     => 'required|string|max:255',
-            'username'      => 'required|string|max:255|unique:users,username',
-            'phone'         => 'required|string|max:15|unique:users,phone',
-            'password'      => 'required|string|min:6|confirmed',
+            'full_name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users,username',
+            'phone' => 'required|string|max:15|unique:users,phone',
+            'password' => 'required|string|min:6|confirmed',
             'profile_image' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
-            'id_image'      => 'required|image|mimes:png,jpg,jpeg|max:2048',
-            'user_date'     => 'required|date',
+            'id_image' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+            'user_date' => 'required|date',
         ]);
 
         $otp = rand(100000, 999999);
@@ -32,8 +32,8 @@ class UserController extends Controller
         // Send OTP via UltraMsg
         $response = Http::asForm()->post($url, [
             'token' => env('ULTRAMSG_TOKEN'),
-            'to'    => $request->phone,
-            'body'  => "Your OTP code is: $otp",
+            'to' => $request->phone,
+            'body' => "Your OTP code is: $otp",
         ]);
 
         $respData = $response->json();
@@ -58,14 +58,14 @@ class UserController extends Controller
         }
 
         Cache::put('pending_user', [
-            'otp'           => $otp,
-            'full_name'     => $request->full_name,
-            'username'      => $request->username,
-            'phone'         => $request->phone,
-            'password'      => Hash::make($request->password),
+            'otp' => $otp,
+            'full_name' => $request->full_name,
+            'username' => $request->username,
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
             'profile_image' => $profileImagePath, // may be null if not uploaded
-            'id_image'      => $idImagePath,
-            'user_date'     => $request->user_date,
+            'id_image' => $idImagePath,
+            'user_date' => $request->user_date,
         ], now()->addMinutes(1));
 
         return response()->json([
@@ -92,13 +92,13 @@ class UserController extends Controller
 
         if ($request->otp == $data['otp']) {
             $user = User::create([
-                'full_name'     => $data['full_name'],
-                'username'      => $data['username'],
-                'phone'         => $data['phone'],
-                'password'      => $data['password'],
+                'full_name' => $data['full_name'],
+                'username' => $data['username'],
+                'phone' => $data['phone'],
+                'password' => $data['password'],
                 'profile_image' => $data['profile_image'] ?? null, // optional
-                'id_image'      => $data['id_image'],              // required
-                'user_date'     => $data['user_date'],             // required
+                'id_image' => $data['id_image'],              // required
+                'user_date' => $data['user_date'],             // required
             ]);
 
             // Clear cache after successful verification
@@ -169,8 +169,8 @@ class UserController extends Controller
         $url = "https://api.ultramsg.com/" . env('ULTRAMSG_INSTANCE_ID') . "/messages/chat";
         $response = Http::asForm()->post($url, [
             'token' => env('ULTRAMSG_TOKEN'),
-            'to'    => $phone,
-            'body'  => "Your password reset OTP is: $otp",
+            'to' => $phone,
+            'body' => "Your password reset OTP is: $otp",
         ]);
 
         $respData = $response->json();
@@ -185,7 +185,7 @@ class UserController extends Controller
         // Store reset flow data linked to OTP
         Cache::put('reset_flow_' . $otp, [
             'phone' => $phone,
-            'otp'   => $otp,
+            'otp' => $otp,
         ], now()->addMinutes(1));
 
         return response()->json([
@@ -197,7 +197,7 @@ class UserController extends Controller
         // Store reset flow data linked to OTP
         Cache::put('reset_flow_' . $otp, [
             'phone' => $phone,
-            'otp'   => $otp,
+            'otp' => $otp,
         ], now()->addMinutes(1));
 
         return response()->json([
@@ -242,7 +242,7 @@ class UserController extends Controller
     {
         $request->validate([
             'reset_token' => 'required|string',
-            'password'    => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:6|confirmed',
         ]);
 
         $tokenData = Cache::get('reset_token_' . $request->reset_token);
@@ -275,28 +275,28 @@ class UserController extends Controller
     }
 
     public function changePassword(Request $request)
-{
-    $request->validate([
-        'current_password'      => 'required|string',
-        'new_password'          => 'required|string|min:6|confirmed',
-    ]);
-    $user = Auth::user();
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:6|confirmed',
+        ]);
+        $user = Auth::user();
 
-    if (!Hash::check($request->current_password, $user->password)) {
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The current password is incorrect'
+            ], 400);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
         return response()->json([
-            'status'  => 'error',
-            'message' => 'The current password is incorrect'
-        ], 400);
+            'status' => 'success',
+            'message' => 'Password changed successfully'
+        ]);
     }
-
-    $user->password = Hash::make($request->new_password);
-    $user->save();
-
-    return response()->json([
-        'status'  => 'success',
-        'message' => 'Password changed successfully'
-    ]);
-}
 
     public function notifications()
     {
@@ -337,9 +337,9 @@ class UserController extends Controller
         return response()->json([
             'status' => 'success',
             'profile' => [
-                'full_name'     => $user->full_name,
-                'username'      => $user->username,
-                'phone'         => $user->phone,
+                'full_name' => $user->full_name,
+                'username' => $user->username,
+                'phone' => $user->phone,
                 'profile_image' => $user->profile_image,
             ],
             'appartements' => $user->appartements
@@ -350,36 +350,41 @@ class UserController extends Controller
 
 
     public function deleteAccount(Request $request)
-{
-    $request->validate([
-        'password' => 'required|string',
-    ]);
+    {
+        $request->validate([
+            'password' => 'required|string',
+        ]);
 
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-    if (!$user) {
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No authenticated user found.'
+            ], 404);
+        }
+
+        // تحقق من كلمة المرور
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The provided password is incorrect.'
+            ], 400);
+        }
+
+        $user->delete();
+
+        Auth::logout();
+
         return response()->json([
-            'status'  => 'error',
-            'message' => 'No authenticated user found.'
-        ], 404);
+            'status' => 'success',
+            'message' => 'Your account has been deleted successfully.'
+        ]);
     }
 
-    // تحقق من كلمة المرور
-    if (!Hash::check($request->password, $user->password)) {
-        return response()->json([
-            'status'  => 'error',
-            'message' => 'The provided password is incorrect.'
-        ], 400);
-    }
 
-    $user->delete();
 
-    Auth::logout();
 
-    return response()->json([
-        'status'  => 'success',
-        'message' => 'Your account has been deleted successfully.'
-    ]);
-}
+
 }

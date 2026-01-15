@@ -42,7 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // --------------------
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('appartements', AppartementController::class);
-    Route::get('/appartements/filter', [AppartementController::class, 'filter']);
+    Route::get('/filter', [AppartementController::class, 'filter']);
 });
 
 // --------------------

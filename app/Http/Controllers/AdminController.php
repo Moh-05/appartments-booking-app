@@ -96,4 +96,73 @@ public function notifications()
             'appartement' => $appartement
         ]);
     }
+
+    public function appartementsPage($username)
+{
+    $today = now();
+
+    $user = User::with([
+        'appartements.owner',
+        'appartements.bookings' => function ($query) use ($today) {
+            $query->where('status', 'booked')
+                  ->where('start_date', '<=', $today)
+                  ->where('end_date', '>=', $today);
+        },
+        'appartements.bookings.user'
+    ])
+    ->where('username', $username)
+    ->firstOrFail();
+
+    return view('User_Appartements', [
+        'user' => $user,
+        'appartements' => $user->appartements
+    ]);
+}
+
+    public function userBookings($username)
+{
+    // نجيب المستخدم مع الحجوزات المرتبطة بالشقق
+    $user = User::where('username', $username)
+        ->with(['bookings.appartement'])
+        ->firstOrFail();
+
+    // نقسم الحجوزات إلى ongoing و past
+    $ongoing = $user->bookings->filter(function ($booking) {
+        return in_array($booking->status, ['pending', 'booked']);
+    });
+
+    $past = $user->bookings->filter(function ($booking) {
+        return in_array($booking->status, ['cancelled', 'completed']);
+    });
+
+    return view('User_Bookings', [
+        'username' => $user->username,
+        'ongoingBookings' => $ongoing,
+        'pastBookings' => $past,
+    ]);
+
+    
+}
+  public function userDetails($username)
+    {
+        // نجيب المستخدم حسب الـ username
+        $user = User::where('username', $username)->firstOrFail();
+
+        return view('User_Details', [
+            'user' => $user
+        ]);
+    }
+
+ public function deleteUser($id)
+    {
+        $user = User::findOrFail($id);
+
+        // نحذف المستخدم
+        $user->delete();
+
+        return redirect()->route('admin.dashboard')->with('success', 'User deleted successfully');
+    }
+
+
+
 }
