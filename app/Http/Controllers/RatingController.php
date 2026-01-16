@@ -8,31 +8,39 @@ use Illuminate\Support\Facades\Auth;
 
 class RatingController extends Controller
 {
-    public function rate(Request $request, $appartementId)
-    {
-        $request->validate([
-            'rating' => 'required|numeric|min:1|max:5',
-        ]);
+  public function rate(Request $request, $appartementId)
+{
+    $request->validate([
+        'rating' => 'required|numeric|min:1|max:5',
+    ]);
 
-        $appartement = Appartement::findOrFail($appartementId);
-        $user = Auth::user();
+    $appartement = Appartement::findOrFail($appartementId);
+    $user = Auth::user();
 
-        $user->ratedAppartements()->syncWithoutDetaching([
-            $appartement->id => ['rating' => $request->rating]
-        ]);
 
-        
-        $avg = $appartement->raters()->avg('rating');
-
-        $appartement->rating = $avg;
-        $appartement->save();
-
+    if ($appartement->owner_id === $user->id) {
         return response()->json([
-            'status' => 'success',
-            'your_rating' => $request->rating,
-            'avgRating' => $appartement->rating, 
-        ]);
+            'status' => 'error',
+            'message' => 'Owner cannot rate their own appartement'
+        ], 403);
     }
+
+   
+    $user->ratedAppartements()->syncWithoutDetaching([
+        $appartement->id => ['rating' => $request->rating]
+    ]);
+
+    
+    $avg = $appartement->raters()->avg('rating');
+    $appartement->rating = $avg;
+    $appartement->save();
+
+    return response()->json([
+        'status' => 'success',
+        'your_rating' => $request->rating,
+        'avgRating' => $appartement->rating,
+    ]);
+}
 
     public function myRating($appartementId)
     {

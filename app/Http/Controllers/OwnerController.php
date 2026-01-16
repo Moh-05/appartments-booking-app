@@ -10,43 +10,60 @@ use Illuminate\Support\Facades\Auth;
 
 class OwnerController extends Controller
 {
-    public function approveBooking($bookingId)
-    {
-        $booking = Booking::findOrFail($bookingId);
+   public function approveBooking($bookingId)
+{
+    $booking = Booking::findOrFail($bookingId);
+    $appartement = $booking->appartement;
 
-        $booking->status = 'booked';
-        $booking->save();
-
-        $appartement = $booking->appartement;
-        $appartement->available = false;
-        $appartement->save();
-
-        $booking->user->notify(new BookingStatusNotification($booking));
-
+    if (Auth::id() !== $appartement->owner_id) {
         return response()->json([
-            'message' => 'Booking approved successfully',
-            'booking' => $booking
-        ]);
-    }
-    public function rejectBooking($bookingId)
-    {
-        $booking = Booking::findOrFail($bookingId);
-
-        $booking->status = 'canceled';
-        $booking->save();
-
-        $appartement = $booking->appartement;
-        $appartement->available = true;
-        $appartement->save();
-
-        $booking->user->notify(new BookingStatusNotification($booking));
-
-        return response()->json([
-            'message' => 'Booking canceled successfully',
-            'booking' => $booking
-        ]);
+            'status' => 'error',
+            'message' => 'You are not authorized to approve this booking'
+        ], 403);
     }
 
+    $booking->status = 'booked';
+    $booking->save();
+
+    $appartement->available = false;
+    $appartement->save();
+
+    $booking->user->notify(new BookingStatusNotification($booking));
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Booking approved successfully',
+        'booking' => $booking
+    ]);
+}
+
+public function rejectBooking($bookingId)
+{
+    $booking = Booking::findOrFail($bookingId);
+    $appartement = $booking->appartement;
+
+   
+    if (Auth::id() !== $appartement->owner_id) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'You are not authorized to reject this booking'
+        ], 403);
+    }
+
+    $booking->status = 'canceled';
+    $booking->save();
+
+    $appartement->available = true;
+    $appartement->save();
+
+    $booking->user->notify(new BookingStatusNotification($booking));
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Booking canceled successfully',
+        'booking' => $booking
+    ]);
+}
 
     public function myAppartements()
     {

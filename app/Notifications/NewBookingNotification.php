@@ -34,7 +34,7 @@ class NewBookingNotification extends Notification
   public function toArray($notifiable)
 {
     return [
-        'message'           => 'New booking request submitted',
+        'message'           => 'New booking request or update was submitted',
         'booking_id'        => $this->booking->id,
         'from'           => $this->booking->user->username, 
         'appartement_id'    => $this->booking->appartement_id,

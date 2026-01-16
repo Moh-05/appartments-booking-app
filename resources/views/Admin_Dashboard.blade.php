@@ -210,7 +210,7 @@
         </div>
     </div>
 
-   <!-- Notifications Modal -->
+ <!-- Notifications Modal -->
 <div id="notificationsModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -364,4 +364,4 @@
                 document.getElementById('notifBadge').textContent = data.notifications.length;
             });
     });
-</script>
+</script>po

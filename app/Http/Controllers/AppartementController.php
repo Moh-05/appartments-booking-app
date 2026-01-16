@@ -28,7 +28,7 @@ class AppartementController extends Controller
             },
             'bookings.user'
         ])
-            // ->where('approval_status', 'approved')
+             ->where('approval_status', 'approved')
             ->get();
 
         return response()->json([

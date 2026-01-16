@@ -22,7 +22,7 @@ class BookingController extends Controller
 
         $appartement = Appartement::findOrFail($appartementId);
 
-        // 👉 Prevent owner from booking their own appartement
+        //  Prevent owner from booking their own appartement
         if ($appartement->owner->id === Auth::id()) {
             return response()->json([
                 'status'  => 'error',
@@ -59,7 +59,7 @@ class BookingController extends Controller
     {
         $booking = Booking::findOrFail($bookingId);
 
-        // ✅ Ensure only the user who made the booking can cancel it
+        //  Ensure only the user who made the booking can cancel it
         if ($booking->user_id !== Auth::id()) {
             return response()->json([
                 'status'  => 'error',
@@ -90,7 +90,7 @@ class BookingController extends Controller
     {
         $booking = Booking::findOrFail($bookingId);
 
-        // ✅ Ensure only the user who made the booking can update it
+        //  Ensure only the user who made the booking can update it
         if ($booking->user_id !== Auth::id()) {
             return response()->json([
                 'status'  => 'error',

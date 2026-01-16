@@ -365,7 +365,6 @@ class UserController extends Controller
             ], 404);
         }
 
-        // تحقق من كلمة المرور
         if (!Hash::check($request->password, $user->password)) {
             return response()->json([
                 'status' => 'error',
