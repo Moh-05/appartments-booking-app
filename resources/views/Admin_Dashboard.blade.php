@@ -210,128 +210,158 @@
         </div>
     </div>
 
-    <!-- Notifications Modal -->
-    <div id="notificationsModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Notifications</h3><span class="close" onclick="closeModal('notificationsModal')">&times;</span>
-            </div>
-            <div class="modal-body" id="notifBody"></div>
+   <!-- Notifications Modal -->
+<div id="notificationsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Notifications</h3>
+            <span class="close" onclick="closeModal('notificationsModal')">&times;</span>
         </div>
+        <div class="modal-body" id="notifBody"></div>
     </div>
+</div>
 
-    <script>
-        function openModal(id, userId = null) {
-            const modal = document.getElementById(id);
-            modal.style.display = 'flex';
-            let body = modal.querySelector('.modal-body');
-            body.innerHTML = "";
+<!-- Toast Notification -->
+<div id="toast" class="toast"></div>
 
-            if (id === 'notificationsModal') {
-                fetch('/admin/notifications')
-                    .then(res => res.json())
-                    .then(data => {
-                        if (!data.notifications || data.notifications.length === 0) {
-                            body.innerHTML = "<p>No notifications found.</p>";
-                        } else {
-                            data.notifications.forEach(n => {
-                                let actionHtml = "";
+<!-- CSRF Token -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
-                                if (n.status === "approved") {
-                                    actionHtml = `<p>✅ Appartement (${n.title ?? 'N/A'}) was approved</p>`;
-                                } else if (n.status === "rejected") {
-                                    actionHtml = `<p>❌ Appartement (${n.title ?? 'N/A'}) was rejected</p>`;
-                                } else {
-                                    actionHtml = `
-                                        <button class="btn btn-primary" onclick="approveAppartement(${n.appartement_id})">Approve</button>
-                                        <button class="btn btn-danger" onclick="rejectAppartement(${n.appartement_id})">Reject</button>
-                                    `;
-                                }
+<style>
+.toast {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 12px;
+    position: fixed;
+    z-index: 9999;
+    left: 50%;
+    bottom: 30px;
+    font-size: 14px;
+}
+.toast.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}
+</style>
 
-                                body.innerHTML += `
-                                    <div style="border-bottom:1px solid #ddd; padding:8px;">
-                                        <p><strong>${n.message}</strong></p>
-                                        <p>🏠 Title: ${n.title ?? 'N/A'}</p>
-                                        <p>👤 Owner: ${n.owner ?? 'N/A'}</p>
-                                        <p>Status: <span id="status-${n.appartement_id}">${n.status}</span></p>
-                                        <p>📅 Date: ${n.created_at}</p>
-                                        ${actionHtml}
-                                    </div>
-                                `;
-                            });
-                        }
-                        document.getElementById('notifBadge').textContent = data.notifications.length;
-                    })
-                    .catch(err => {
-                        body.innerHTML = "<p>Error loading notifications.</p>";
-                    });
-            }
-        }
+<script>
+    function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.className = "toast show";
+        setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+    }
 
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        modal.style.display = 'flex';
+        let body = modal.querySelector('.modal-body');
+        body.innerHTML = "";
 
-        function searchUser() {
-            let input = document.getElementById("searchInput").value.toLowerCase();
-            let rows = document.querySelectorAll("#usersTable tbody tr");
-            rows.forEach(row => {
-                let username = row.cells[2].textContent.toLowerCase();
-                row.style.display = username.indexOf(input) > -1 ? "" : "none";
-            });
-        }
-
-        // Approve function
-        function approveAppartement(id) {
-            fetch(`/admin/appartements/${id}/approve`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json'
-                }
-            })
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById(`status-${id}`).textContent = 'approved';
-                    alert(data.message);
-                    const parentDiv = document.getElementById(`status-${id}`).parentElement;
-                    parentDiv.querySelectorAll('button').forEach(btn => btn.remove());
-                    parentDiv.insertAdjacentHTML('beforeend', `<p>✅ Appartement (${data.appartement.title}) was approved</p>`);
-                })
-                .catch(err => alert("Error approving appartement"));
-        }
-
-        // Reject function
-        function rejectAppartement(id) {
-            fetch(`/admin/appartements/${id}/reject`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json'
-                }
-            })
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById(`status-${id}`).textContent = 'rejected';
-                    alert(data.message);
-                    const parentDiv = document.getElementById(`status-${id}`).parentElement;
-                    // إزالة الأزرار القديمة
-                    parentDiv.querySelectorAll('button').forEach(btn => btn.remove());
-                    // إضافة النص الجديد
-                    parentDiv.insertAdjacentHTML('beforeend', `<p>❌ Appartement (${data.appartement.title}) was rejected</p>`);
-                })
-                .catch(err => alert("Error rejecting appartement"));
-        }
-
-        // تحديث عدد الإشعارات عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', () => {
+        if (id === 'notificationsModal') {
             fetch('/admin/notifications')
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('notifBadge').textContent = data.notifications.length;
-                });
-        });
-    </script>
-</body>
+                    if (!data.notifications || data.notifications.length === 0) {
+                        body.innerHTML = "<p>No notifications found.</p>";
+                    } else {
+                        data.notifications.forEach(n => {
+                            let actionHtml = "";
 
-</html>
+                            if (n.status === "approved") {
+                                actionHtml = `<p>✅ Appartement (${n.title ?? 'N/A'}) was approved</p>`;
+                            } else if (n.status === "rejected") {
+                                actionHtml = `<p>❌ Appartement (${n.title ?? 'N/A'}) was rejected</p>`;
+                            } else {
+                                actionHtml = `
+                                    <button class="btn btn-primary" onclick="approveAppartement(${n.appartement_id})">Approve</button>
+                                    <button class="btn btn-danger" onclick="rejectAppartement(${n.appartement_id})">Reject</button>
+                                `;
+                            }
+
+                            body.innerHTML += `
+                                <div style="border-bottom:1px solid #ddd; padding:8px;">
+                                    <p><strong>${n.message}</strong></p>
+                                    <p>🏠 Title: ${n.title ?? 'N/A'}</p>
+                                    <p>👤 Owner: ${n.owner ?? 'N/A'}</p>
+                                    <p>Status: <span id="status-${n.appartement_id}">${n.status}</span></p>
+                                    <p>📅 Date: ${n.created_at}</p>
+                                    ${actionHtml}
+                                </div>
+                            `;
+                        });
+                    }
+                    document.getElementById('notifBadge').textContent = data.notifications.length;
+                })
+                .catch(err => {
+                    body.innerHTML = "<p>Error loading notifications.</p>";
+                });
+        }
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    // Approve function
+    function approveAppartement(id) {
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        fetch(`/admin/appartements/${id}/approve`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': token,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(() => {
+            document.getElementById(`status-${id}`).textContent = 'approved';
+            const parentDiv = document.getElementById(`status-${id}`).parentElement;
+            parentDiv.querySelectorAll('button').forEach(btn => btn.remove());
+            parentDiv.insertAdjacentHTML('beforeend', `<p>✅ Appartement was approved</p>`);
+            showToast("✅ Appartement was approved");
+        });
+    }
+
+    // Reject function
+    function rejectAppartement(id) {
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        fetch(`/admin/appartements/${id}/reject`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': token,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(() => {
+            document.getElementById(`status-${id}`).textContent = 'rejected';
+            const parentDiv = document.getElementById(`status-${id}`).parentElement;
+            parentDiv.querySelectorAll('button').forEach(btn => btn.remove());
+            parentDiv.insertAdjacentHTML('beforeend', `<p>❌ Appartement was rejected</p>`);
+            showToast("❌ Appartement was rejected");
+        });
+    }
+
+    // تحديث عدد الإشعارات عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch('/admin/notifications')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('notifBadge').textContent = data.notifications.length;
+            });
+    });
+</script>

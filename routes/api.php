@@ -69,13 +69,13 @@ Route::middleware('auth:sanctum')->group(function () {
 // --------------------
 Route::post('/admin/login', [AdminController::class, 'login']);
 
-Route::middleware('auth:admin')->group(function () {
+
     Route::get('/admin/notifications', [AdminController::class, 'notifications']);
 
     // Appartement approvals
     Route::post('/admin/appartements/{appartementId}/approve', [AdminController::class, 'approve_appartement']);
     Route::post('/admin/appartements/{appartementId}/reject', [AdminController::class, 'reject_appartement']);
-});
+
 
 // --------------------
 // 🏠 Owner Routes
