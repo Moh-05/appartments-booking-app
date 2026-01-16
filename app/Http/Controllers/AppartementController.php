@@ -172,9 +172,19 @@ class AppartementController extends Controller
 
 
 
-    public function filter(Request $request)
+   public function filter(Request $request)
 {
-    $query = Appartement::query();
+    $today = now();
+
+    $query = Appartement::with([
+        'owner',
+        'bookings' => function ($q) use ($today) {
+            $q->where('status', 'booked')
+              ->where('start_date', '<=', $today)
+              ->where('end_date', '>=', $today);
+        },
+        'bookings.user'
+    ]);
 
     if ($request->filled('city')) {
         $query->where('city', $request->city);
@@ -204,7 +214,6 @@ class AppartementController extends Controller
         $query->where('space', '>=', $request->space);
     }
 
-    // ✅ فلترة على rating
     if ($request->filled('rating')) {
         $query->where('rating', '>=', $request->rating);
     }
