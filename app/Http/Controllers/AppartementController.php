@@ -66,19 +66,19 @@ class AppartementController extends Controller
             'data' => $appartement,
         ], 201);
     }
-    public function show(Appartement $appartement)
-    {
+  //  public function show(Appartement $appartement)
+   // {
         // Right now we return ALL appartements
-        $appartements = Appartement::all();
+       // $appartements = Appartement::all();
 
         // to only show approved appartements,
         // $appartements = Appartement::where('approval_status', 'approved')->get();
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $appartements
-        ], 200);
-    }
+       // return response()->json([
+           // 'status' => 'success',
+         //   'data' => $appartements
+       // ], 200);
+  //  }
 
     /**
      * Update the specified resource in storage.
@@ -87,7 +87,6 @@ class AppartementController extends Controller
     {
         $appartement = Appartement::findOrFail($id);
 
-        // تحقق إنو المستخدم الحالي هو صاحب الشقة
         if ($appartement->user_id !== Auth::id()) {
             return response()->json([
                 'status' => 'error',
@@ -122,7 +121,6 @@ class AppartementController extends Controller
             'address',
         ]));
 
-        // تحديث الصور إذا تم رفع صور جديدة
         if ($request->hasFile('images')) {
             $paths = [];
             foreach ($request->file('images') as $image) {
@@ -168,11 +166,7 @@ class AppartementController extends Controller
         ], 200);
     }
 
-
-
-
-
-   public function filter(Request $request)
+public function filter(Request $request)
 {
     $today = now();
 
@@ -184,7 +178,7 @@ class AppartementController extends Controller
               ->where('end_date', '>=', $today);
         },
         'bookings.user'
-    ]);
+    ])->where('approval_status', 'approved');
 
     if ($request->filled('city')) {
         $query->where('city', $request->city);
@@ -232,4 +226,7 @@ class AppartementController extends Controller
         'data' => $appartements
     ], 200);
 }
+
+
+
 }
